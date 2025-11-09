@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourcePerFileMappings">
+    <file url="file://$PROJECT_DIR$/src/main/java/com/echo/dao/CategoryDaoImpl.java" value="8187f46f-1b9b-456f-906c-3b69d62c2cbb" />
+    <file url="file://$PROJECT_DIR$/src/main/java/com/echo/dao/CommentDaoImpl.java" value="8187f46f-1b9b-456f-906c-3b69d62c2cbb" />
+  </component>
+</project>

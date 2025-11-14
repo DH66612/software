@@ -387,7 +387,12 @@ public class UserController extends HttpServlet {
 
             // 5. 设置成功消息并跳转到首页
             request.setAttribute("message", "注册成功！欢迎加入回声网络");
-            response.sendRedirect(request.getContextPath() + "/article-list.jsp");
+            String redirectUrl = request.getParameter("redirect");
+            if (redirectUrl != null && !redirectUrl.isEmpty()) {
+                response.sendRedirect(redirectUrl);
+            } else {
+                response.sendRedirect(request.getContextPath() + "/article-list.jsp");
+            }
 
         } catch (RuntimeException e) {
             // 注册失败

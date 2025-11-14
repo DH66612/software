@@ -395,12 +395,7 @@
 </head>
 <body>
 <div class="container">
-    <!-- 调试信息 -->
-    <div class="debug-info">
-        模式: ${action} |
-        文章ID: ${article.id} |
-        表单Action: ${pageContext.request.contextPath}/article/${action == 'edit' ? 'edit' : 'publish'}
-    </div>
+
 
     <div class="header">
         <h1>

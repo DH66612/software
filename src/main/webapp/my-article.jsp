@@ -511,14 +511,6 @@
         <div class="message error">${error}</div>
     </c:if>
 
-    <!-- 调试信息（正式环境可以移除） -->
-    <div class="debug-info">
-        调试信息:
-        文章总数 = ${totalCount},
-        当前页 = ${currentPage},
-        总页数 = ${totalPages},
-        当前用户ID = ${sessionScope.currentUser.id}
-    </div>
 
     <c:choose>
         <c:when test="${not empty articles}">
@@ -551,6 +543,12 @@
                             <div class="dropdown">
                                 <a href="javascript:void(0)" class="btn dropdown-toggle">⚙️ 更多</a>
                                 <div class="dropdown-menu">
+                                    <form action="${pageContext.request.contextPath}/article/delete" method="POST" style="display: block; margin: 0;">
+                                        <input type="hidden" name="id" value="${article.id}">
+                                        <button type="submit" class="dropdown-item" onclick="return confirm('确定要删除这篇文章吗？此操作不可恢复。')" style="background: none; border: none; width: 100%; text-align: left; color: inherit;">
+                                            🗑️ 删除文章
+                                        </button>
+                                    </form>
                                     <a href="${pageContext.request.contextPath}/wait.jsp" class="dropdown-item">
                                         🔗 分享文章
                                     </a>
@@ -561,12 +559,7 @@
                                         📋 复制文章
                                     </a>
                                     <div class="dropdown-divider"></div>
-                                    <form action="${pageContext.request.contextPath}/article/delete" method="POST" style="display: block; margin: 0;">
-                                        <input type="hidden" name="id" value="${article.id}">
-                                        <button type="submit" class="dropdown-item" onclick="return confirm('确定要删除这篇文章吗？此操作不可恢复。')" style="background: none; border: none; width: 100%; text-align: left; color: inherit;">
-                                            🗑️ 删除文章
-                                        </button>
-                                    </form>
+
                                 </div>
                             </div>
                         </div>

@@ -270,7 +270,7 @@ public class ArticleController extends HttpServlet {
         plainText = plainText.replaceAll("\\s+", " ").trim();
 
 
-        if (plainText.length() <= 100) {
+        if (plainText.length() <= 100) {//截取文章摘要
             return plainText;
         } else {
 

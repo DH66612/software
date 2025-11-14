@@ -98,7 +98,7 @@ public class UploadAvatarServlet extends HttpServlet {
                         String contentType = item.getContentType();
                         if (!contentType.startsWith("image/")) {
                             request.setAttribute("error", "只能上传图片文件");
-                            response.sendRedirect(request.getContextPath() + "/user/profile");//重定向
+                            response.sendRedirect(request.getContextPath() + "/user/profile");//重定向rr
                             return;
                         }
 

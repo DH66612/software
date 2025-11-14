@@ -213,7 +213,8 @@
         <p>加入我们，开始您的旅程</p>
     </div>
 
-    <form id="registerForm" method="post" action="${pageContext.request.contextPath}/user/register">
+    <form id="registerForm" method="post" action="${pageContext.request.contextPath}/user/register">\
+        <input type="hidden" name="redirect" value="${pageContext.request.contextPath}/article/list">
         <div class="form-group">
             <label for="username">用户名</label>
             <input type="text" id="username" name="username" class="form-control"
@@ -238,7 +239,7 @@
                    placeholder="请再次输入密码" required minlength="6">
         </div>
 
-        <button type="submit" class="btn-register">注册</button>
+       <button type="submit" class="btn-register">注册</button>
     </form>
 
     <div class="login-link">

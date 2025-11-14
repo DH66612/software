@@ -4,10 +4,7 @@ import java.io.InputStream;
 import java.sql.*;
 import java.util.Properties;
 
-/**
- * JDBC 工具类
- * 用于获取数据库连接和释放资源
- */
+
 public class JdbcUtils {
 
     private static String url;
@@ -42,9 +39,7 @@ public class JdbcUtils {
         return DriverManager.getConnection(url, user, password);
     }
 
-    /**
-     * 释放资源
-     */
+
     public static void close(ResultSet rs, Statement stmt, Connection conn) {
         if (rs != null) {
             try {
@@ -52,7 +47,7 @@ public class JdbcUtils {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-        }
+        }//关闭数据库结果集
 
         if (stmt != null) {//关闭语句对象
             try {
@@ -71,9 +66,7 @@ public class JdbcUtils {
         }
     }
 
-    /**
-     * 释放资源（无ResultSet）
-     */
+
     public static void close(Statement stmt, Connection conn) {
         close(null, stmt, conn);
     }

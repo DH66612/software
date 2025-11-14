@@ -8,10 +8,6 @@ import com.echo.dao.UserDaoImpl;
 import java.util.Date;
 import java.util.List;
 
-    /**
-     * 用户服务实现类
-     * 处理用户相关的业务逻辑
-     */
     public class UserServiceImpl implements UserService{
 
         private UserDao userDao;

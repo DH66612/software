@@ -8,7 +8,7 @@
     <!-- 应用显示名称 -->
     <display-name>回声网络博客系统</display-name>
     <description>基于Java Servlet的博客系统</description>
-
+<!--配置字符编码过滤器为UTF-8-->
     <filter>
         <filter-name>CharacterEncodingFilter</filter-name>
         <filter-class>com.echo.filter.CharacterEncodingFilter</filter-class>
@@ -21,8 +21,9 @@
         <filter-name>CharacterEncodingFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
+    <!--配置字符编码过滤器映射所有url-->
 
-
+    <!--配置登录过滤器及排除路径-->
 
     <filter>
         <filter-name>LoginFilter</filter-name>
@@ -39,7 +40,7 @@
         <url-pattern>/article/publish</url-pattern>
         <url-pattern>/comment/*</url-pattern>
     </filter-mapping>
-
+    <!--登录过滤器映射保护路径-->
     <filter>
         <filter-name>AdminFilter</filter-name>
         <filter-class>com.echo.filter.AdminFilter</filter-class>
@@ -75,10 +76,12 @@
     </welcome-file-list>
 
     <!-- MIME类型映射 -->
+    <!-- 设置HTML MIME类型及字符集 -->
     <mime-mapping>
         <extension>html</extension>
         <mime-type>text/html;charset=UTF-8</mime-type>
     </mime-mapping>
+    <!-- 字符集是字符编码规则的集合 -->
     <mime-mapping>
         <extension>css</extension>
         <mime-type>text/css</mime-type>
@@ -93,7 +96,7 @@
     </mime-mapping>
 
 
-    <!-- 上下文参数（可用于数据库配置等） -->
+    <!-- 配置应用名称和版本参数） -->
     <context-param>
         <param-name>app.name</param-name>
         <param-value>回声网络</param-value>

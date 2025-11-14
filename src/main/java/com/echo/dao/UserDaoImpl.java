@@ -18,7 +18,7 @@ public class UserDaoImpl implements UserDao {
 
         try {
             conn = JdbcUtils.getConnection();
-            pstmt = conn.prepareStatement(sql);
+            pstmt = conn.prepareStatement(sql);//创建预编译语句对象
             pstmt.setString(1, avatarUrl);
             pstmt.setInt(2, userId);
 
@@ -69,10 +69,10 @@ public class UserDaoImpl implements UserDao {
             String sql = "SELECT id, username, password, email, nickname, role, status, avatar, create_time, update_time FROM users WHERE id = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, id);
-            rs = pstmt.executeQuery();
+            rs = pstmt.executeQuery();//执行数据库查询语句
 
             if (rs.next()) {
-                user = resultSetToUser(rs);
+                user = resultSetToUser(rs);//遍历结果集填充用户列表
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -95,7 +95,7 @@ public class UserDaoImpl implements UserDao {
         User user = null;
 
         try {
-            conn = JdbcUtils.getConnection();
+            conn = JdbcUtils.getConnection();//获取数据库连接
             System.out.println("数据库连接获取成功");
 
             String sql = "SELECT id, username, password, email, nickname, role, status, avatar, create_time, update_time FROM users WHERE username = ?";
@@ -105,8 +105,8 @@ public class UserDaoImpl implements UserDao {
             System.out.println("执行SQL查询: " + sql + "，参数: " + username);
             rs = stmt.executeQuery();
 
-            if (rs.next()) {
-                System.out.println("找到用户记录");
+            if (rs.next()) {//移动结果集游标,检查结果集是否有数据
+                System.out.println("找到用户记录");//查询用户记录并转换对象
                 user = resultSetToUser(rs);
             } else {
                 System.out.println("未找到用户记录 - 这是正常的，说明用户名可用");
@@ -142,8 +142,8 @@ public class UserDaoImpl implements UserDao {
                 user = resultSetToUser(rs);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException("查询用户失败", e);
+            e.printStackTrace();//打印异常堆栈信息
+            throw new RuntimeException("查询用户失败", e);//抛出运行时异常
         } finally {
             JdbcUtils.close(rs, pstmt, conn);
         }
@@ -173,11 +173,11 @@ public class UserDaoImpl implements UserDao {
             pstmt.setTimestamp(8, new Timestamp(user.getCreateTime().getTime()));
             pstmt.setTimestamp(9, new Timestamp(user.getUpdateTime().getTime()));
 
-            result = pstmt.executeUpdate();
+            result = pstmt.executeUpdate();//执行SQL更新操作
 
-            // 获取自增主键
+
             if (result > 0) {
-                rs = pstmt.getGeneratedKeys();
+                rs = pstmt.getGeneratedKeys();//获取自增主键
                 if (rs.next()) {
                     user.setId(rs.getInt(1));
                 }

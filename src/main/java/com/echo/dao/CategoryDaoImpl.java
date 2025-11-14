@@ -338,9 +338,7 @@ public class CategoryDaoImpl implements CategoryDao {
             return categories;
         }
 
-        /**
-         * 将 ResultSet 转换为 Category 对象
-         */
+
         private Category resultSetToCategory(ResultSet rs) throws SQLException {
             Category category = new Category();
 

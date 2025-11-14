@@ -451,13 +451,7 @@ public class UserController extends HttpServlet {
         }
     }
 
-    /**
-     * 修改密码
-     */
 
-    /**
-     * 修改密码 - 支持AJAX和传统表单两种方式
-     */
     private void changePassword(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -522,9 +516,7 @@ public class UserController extends HttpServlet {
         return "XMLHttpRequest".equals(request.getHeader("X-Requested-With"));
     }
 
-    /**
-     * 发送JSON响应
-     */
+
     private void sendJsonResponse(HttpServletResponse response, boolean success, String message)
             throws IOException {
         response.setContentType("application/json");
@@ -548,9 +540,7 @@ public class UserController extends HttpServlet {
         }
     }
 
-    /**
-     * 处理成功响应
-     */
+
     private void handleSuccess(HttpServletRequest request, HttpServletResponse response,
                                String successMessage) throws ServletException, IOException {
         if (isAjaxRequest(request)) {
@@ -561,9 +551,7 @@ public class UserController extends HttpServlet {
         }
     }
 
-    /**
-     * 用户注销
-     */
+
     private void logout(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 

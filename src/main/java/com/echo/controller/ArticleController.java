@@ -16,10 +16,7 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.List;
 
-/**
- * 文章控制器
- * 处理文章相关的所有请求
- */
+
 @WebServlet("/article/*")
 public class ArticleController extends HttpServlet {
 
@@ -288,9 +285,7 @@ public class ArticleController extends HttpServlet {
             return plainText.substring(0, endIndex) + "...";
         }
     }
-    /**
-     * 丰富文章作者信息
-     */
+
     private void enrichArticleAuthorInfo(List<Article> articles) {
         for (Article article : articles) {
             User author = userService.getUserById(article.getauthorid());
@@ -345,7 +340,7 @@ public class ArticleController extends HttpServlet {
             // 获取评论分页参数
             String commentPageStr = request.getParameter("commentPage");
             int commentPage = 1;
-            int commentPageSize = 10;
+            int commentPageSize = 5;
 
             if (commentPageStr != null && !commentPageStr.isEmpty()) {
                 try {
@@ -385,7 +380,7 @@ public class ArticleController extends HttpServlet {
             System.out.println("=== 文章详情加载完成，准备转发 ===");
 
             // 转发到详情页面
-            request.getRequestDispatcher("/article-detail.jsp").forward(request, response);
+            request.getRequestDispatcher("/article_detail.jsp").forward(request, response);
 
         } catch (NumberFormatException e) {
             System.out.println("文章ID格式错误: " + e.getMessage());
@@ -394,7 +389,7 @@ public class ArticleController extends HttpServlet {
             System.out.println("加载文章详情异常: " + e.getMessage());
             e.printStackTrace();
             request.setAttribute("error", "获取文章详情失败: " + e.getMessage());
-            request.getRequestDispatcher("/article-detail.jsp").forward(request, response);
+            request.getRequestDispatcher("/article_detail.jsp").forward(request, response);
         }
     }
    //我的文章
@@ -510,9 +505,7 @@ public class ArticleController extends HttpServlet {
         request.getRequestDispatcher("/WEB-INF/views/article/search.jsp").forward(request, response);
     }
 
-    /**
-     * 按分类显示文章
-     */
+
     private void showArticlesByCategory(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -633,9 +626,7 @@ public class ArticleController extends HttpServlet {
         }
     }
 
-    /**
-     * 更新文章
-     */
+
     private void updateArticle(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -685,7 +676,7 @@ public class ArticleController extends HttpServlet {
             if (currentUser.isAdmin() && status != null) {
                 try {
                     article.setstatus(Integer.parseInt(status));//设置文章状态值
-                } catch (NumberFormatException e) {
+                } catch (NumberFormatException e) {//捕获数字格式异常
                     // 忽略状态解析错误
                 }
             }
@@ -725,18 +716,16 @@ public class ArticleController extends HttpServlet {
         }
     }
 
-    /**
-     * 显示编辑页面 - 添加详细调试
-     */
+
     private void showEditPage(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        System.out.println("=== 🚀 开始加载编辑页面 ===");
+        System.out.println("===  开始加载编辑页面 ===");
 
         // 检查用户是否登录
         User currentUser = SessionUtils.getCurrentUser(request);
         if (currentUser == null) {
-            System.out.println("❌ 用户未登录，重定向到登录页面");
+            System.out.println(" 用户未登录，重定向到登录页面");
             response.sendRedirect(request.getContextPath() + "/user/login");
             return;
         }
@@ -866,9 +855,7 @@ public class ArticleController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/article/my-articles");
         }
     }
-    /**
-     * 点赞文章
-     */
+
     private void likeArticle(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -903,9 +890,7 @@ public class ArticleController extends HttpServlet {
         }
     }
 
-    /**
-     * 取消点赞
-     */
+
     private void unlikeArticle(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 

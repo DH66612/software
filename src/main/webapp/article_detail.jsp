@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
@@ -421,139 +421,133 @@
 </head>
 <body>
 <div class="container">
-<!-- 消息提示 -->
-<c:if test="${not empty message}">
-    <div class="message success">${message}</div>
-</c:if>
+    <!-- 消息提示 -->
+    <c:if test="${not empty message}">
+        <div class="message success">${message}</div>
+    </c:if>
 
-<c:if test="${not empty error}">
-    <div class="message error">${error}</div>
-</c:if>
+    <c:if test="${not empty error}">
+        <div class="message error">${error}</div>
+    </c:if>
 
-<!-- 文章内容 -->
-<div class="article-container">
-<div class="article-header">
-<h1 class="article-title">${article.title}</h1>
+    <!-- 文章内容 -->
+    <div class="article-container">
+        <div class="article-header">
+            <h1 class="article-title">${article.title}</h1>
 
-<div class="article-meta">
-    <span>作者: ${article.authorName}</span>
-    <span>发布于: <fmt:formatDate value="${article.createTime}" pattern="yyyy-MM-dd HH:mm"/></span>
-    <span>阅读: ${article.viewCount}</span>
-</div>
+            <div class="article-meta">
+                <span>作者: ${article.authorName}</span>
+                <span>发布于: <fmt:formatDate value="${article.createTime}" pattern="yyyy-MM-dd HH:mm"/></span>
+                <span>阅读: ${article.viewCount}</span>
+            </div>
 
-<c:if test="${not empty article.categories}">
-    <div class="article-categories">
-        <c:forEach var="category" items="${article.categories}">
-            <a href="${pageContext.request.contextPath}/article/list?categoryId=${category.id}"
-               class="article-category">${category.name}</a >
-        </c:forEach>
+            <c:if test="${not empty article.categories}">
+                <div class="article-categories">
+                    <c:forEach var="category" items="${article.categories}">
+                        <a href="${pageContext.request.contextPath}/article/list?categoryId=${category.id}"
+                           class="article-category">${category.name}</a>
+                    </c:forEach>
+                </div>
+            </c:if>
+
+            <div class="article-stats">
+                <button class="like-btn stat-item ${hasLiked ? 'liked' : ''}"
+                        id="likeBtn"
+                        data-article-id="${article.id}">
+                    <span>❤️</span>
+                    <span id="likeCount">${article.likeCount}</span> 点赞
+                </button>
+                <div class="stat-item">
+                    <span>💬</span>
+                    <span>${totalComments}</span> 评论
+                </div>
+                <div class="stat-item">
+                    <span>👁️</span>
+                    <span>${article.viewCount}</span> 阅读
+                </div>
+            </div>
+        </div>
+
+        <div class="article-content">
+            ${article.htmlContent}
+        </div>
     </div>
-</c:if><div class="article-stats">
-    <button class="like-btn stat-item ${hasLiked ? 'liked' : ''}"
-            id="likeBtn"
-            data-article-id="${article.id}">
-        <span>❤️</span>
-        <span id="likeCount">${article.likeCount}</span> 点赞
-    </button>
-    <div class="stat-item">
-        <span>💬</span>
-        <span>${totalComments}</span> 评论
-    </div>
-    <div class="stat-item">
-        <span>👁️</span>
-        <span>${article.viewCount}</span> 阅读
-    </div>
-</div>
-</div>
-
-    <div class="article-content">
-        ${article.htmlContent}
-    </div>
-</div>
 
     <!-- 评论区域 -->
     <div class="comments-container">
         <div class="comments-header">
             <h2 class="comments-title">评论</h2>
-            <span class="comment-count">共 $${totalComments} 条评论</span>
+            <span class="comment-count">共 ${totalComments} 条评论</span>
         </div>
-    </div>
 
-    <!-- 评论表单 -->
-    <c:choose>
-    <c:when test="${not empty sessionScope.currentUser}">
-    <form class="comment-form" action="${pageContext.request.contextPath}/article/comment" method="GET">
-        <input type="hidden" name="articleId" value="${article.id}">
-        <input type="hidden" name="action" value="add">
-        <textarea name="content" placeholder="写下你的评论..." required maxlength="1000"></textarea>
-        <button type="submit" class="btn">发表评论</button>
-    </form>
-    </c:when>
-    <c:otherwise>
-    <div class="login-prompt">
-        <p>请<a href="${pageContext.request.contextPath}/user/login">登录</a >后发表评论</p >
-    </div>
-    </c:otherwise>
-    </c:choose>
-    <!-- 评论部分 -->
-        <div class="comments-section">
-            <h3>评论</h3>
-            <!-- 评论部分 -->
-            <div class="comments-section">
-                <h3>评论 (${totalComments})</h3>
-
-                <div class="comment-list">
-                    <c:choose>
-                        <!--检查评论列表是否为空-->
-                        <c:when test="${not empty comments}">
-                            <c:forEach var="comment" items="${comments}">
-                                <div class="comment-item">
-                                    <div class="comment-header">
-                                        <div class="comment-author">
-                                            <c:if test="${not empty comment.authorAvatar}">
-                                                <div class="comment-author"> <img src="${pageContext.request.contextPath}${not empty comment.authorAvatar ? comment.authorAvatar : '/images/avatar-default.png'}" alt="头像" class="comment-author-avatar"> </div>
-                                            </c:if>
-                                                ${comment.authorName}
-                                        </div>
-                                        <span class="comment-time">
-                                <fmt:formatDate value="${comment.createTime}" pattern="yyyy-MM-dd HH:mm"/>
-                            </span>
-                                    </div>
-                                    <div class="comment-content">${comment.content}</div>
-                                </div>
-                            </c:forEach>
-                        </c:when>
-                        <c:otherwise>
-                            <div class="empty-state">
-                                <h3>暂无评论</h3>
-                                <p>快来发表第一条评论吧！</p >
-                            </div>
-                        </c:otherwise>
-                    </c:choose>
+        <!-- 评论表单 -->
+        <c:choose>
+            <c:when test="${not empty sessionScope.currentUser}">
+                <form class="comment-form" action="${pageContext.request.contextPath}/article/comment" method="POST">
+                    <input type="hidden" name="articleId" value="${article.id}">
+                    <textarea name="content" placeholder="写下你的评论..." required maxlength="1000"></textarea>
+                    <button type="submit" class="btn">发表评论</button>
+                </form>
+            </c:when>
+            <c:otherwise>
+                <div class="login-prompt">
+                    <p>请<a href="${pageContext.request.contextPath}/user/login">登录</a>后发表评论</p>
                 </div>
+            </c:otherwise>
+        </c:choose>
 
-                <!-- 评论分页 -->
-                <c:if test="${totalCommentPages > 1}">
-                    <div class="pagination">
-                        <c:if test="${currentCommentPage > 1}">
-                            <a href=" ${pageContext.request.contextPath}/article/detail?id=${article.id}&commentPage=${currentCommentPage-1}"
-                               class="page-btn">上一页</a >
-                        </c:if>
-
-                        <c:forEach begin="1" end="${totalCommentPages}" var="pageNum">
-                            <a href="${pageContext.request.contextPath}/article/detail?id=${article.id}&commentPage=${pageNum}"
-                               class="page-btn ${pageNum == currentCommentPage ? 'active' : ''}">${pageNum}</a >
-                        </c:forEach>
-
-                        <c:if test="${currentCommentPage < totalCommentPages}">
-                            <a href="${pageContext.request.contextPath}/article/detail?id=${article.id}&commentPage=${currentCommentPage+1}"
-                               class="page-btn">下一页</a >
-                        </c:if>
+        <!-- 评论列表 -->
+        <div class="comment-list">
+            <c:choose>
+                <c:when test="${not empty comments}">
+                    <c:forEach var="comment" items="${comments}">
+                        <div class="comment-item">
+                            <div class="comment-header">
+                                <div class="comment-author">
+                                    <img src="${pageContext.request.contextPath}${not empty comment.authorAvatar ? comment.authorAvatar : '/images/avatar-default.png'}"
+                                         alt="头像" class="comment-author-avatar">
+                                        ${comment.authorName}
+                                </div>
+                                <span class="comment-time">
+                                    <fmt:formatDate value="${comment.createTime}" pattern="yyyy-MM-dd HH:mm"/>
+                                </span>
+                            </div>
+                            <div class="comment-content">${comment.content}</div>
+                        </div>
+                    </c:forEach>
+                </c:when>
+                <c:otherwise>
+                    <div class="empty-state">
+                        <h3>暂无评论</h3>
+                        <p>快来发表第一条评论吧！</p>
                     </div>
+                </c:otherwise>
+            </c:choose>
+        </div>
+
+        <!-- 评论分页 -->
+        <c:if test="${totalCommentPages > 1}">
+            <div class="pagination">
+                <c:if test="${currentCommentPage > 1}">
+                    <a href="${pageContext.request.contextPath}/article/detail?id=${article.id}&commentPage=${currentCommentPage-1}"
+                       class="page-btn">上一页</a>
+                </c:if>
+
+                <c:forEach begin="1" end="${totalCommentPages}" var="pageNum">
+                    <a href="${pageContext.request.contextPath}/article/detail?id=${article.id}&commentPage=${pageNum}"
+                       class="page-btn ${pageNum == currentCommentPage ? 'active' : ''}">${pageNum}</a>
+                </c:forEach>
+
+                <c:if test="${currentCommentPage < totalCommentPages}">
+                    <a href="${pageContext.request.contextPath}/article/detail?id=${article.id}&commentPage=${currentCommentPage+1}"
+                       class="page-btn">下一页</a>
                 </c:if>
             </div>
-        </div>
-           <script>
+        </c:if>
+    </div>
+</div>
+
+<script>
     document.addEventListener('DOMContentLoaded', function() {
         const likeBtn = document.getElementById('likeBtn');
         const likeCount = document.getElementById('likeCount');
@@ -617,5 +611,5 @@
         }
     });
 </script>
-        </body>
+</body>
 </html>

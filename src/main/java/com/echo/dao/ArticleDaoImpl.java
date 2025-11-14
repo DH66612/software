@@ -13,7 +13,7 @@ import java.util.List;
 
 
 public class ArticleDaoImpl implements ArticleDao {
-// //resultset是jdbc的结果集
+// //resultset是jdbc的结果集,是数据库查询返回的数据集合
     private Article ResultSetToArticle(ResultSet rs) throws SQLException {
         Article article = new Article();
         article.setid(rs.getInt("id"));

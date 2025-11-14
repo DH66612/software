@@ -16,10 +16,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-/**
- * 文章服务实现类
- * 处理文章相关的业务逻辑
- */
+
 public class ArticleServiceImpl implements ArticleService {
 
     private ArticleDao articleDao;
@@ -27,7 +24,7 @@ public class ArticleServiceImpl implements ArticleService {
 
     // Markdown 解析器
     private Parser markdownParser;
-    private HtmlRenderer htmlRenderer;
+    private HtmlRenderer htmlRenderer;//声明HTML渲染器变量,用于在后端生成HTML字符串
 
     public ArticleServiceImpl() {
         this.articleDao = new ArticleDaoImpl(); // 假设有ArticleDaoImpl
@@ -137,7 +134,7 @@ public class ArticleServiceImpl implements ArticleService {
             System.out.println("DEBUG: articleDao.insert 返回: " + result);
             System.out.println("DEBUG: 文章ID: " + article.getid());
 
-            if (result <= 0) {
+            if (result <= 0) {//检查更新是否失败
                 throw new RuntimeException("文章保存失败");
             }
             System.out.println("文章插入成功，生成ID: " + article.getid());
@@ -155,7 +152,7 @@ public class ArticleServiceImpl implements ArticleService {
         } catch (Exception e) {   if (conn != null) {
             try {
                 System.out.println("DEBUG: 发布过程中异常: " + e.getMessage());
-                conn.rollback();
+                conn.rollback();//回滚数据库事务
                 System.out.println("事务回滚！");
             } catch (SQLException ex) {
                 ex.printStackTrace();
@@ -171,7 +168,7 @@ public class ArticleServiceImpl implements ArticleService {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                } catch (SQLException e) {
+                } catch (SQLException e) {//捕获数据库异常
                     e.printStackTrace();
                 }
             }

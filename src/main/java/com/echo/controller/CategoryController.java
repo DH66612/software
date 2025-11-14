@@ -121,9 +121,7 @@ public class CategoryController extends HttpServlet {
         }
     }
 
-    /**
-     * 发送JSON响应
-     */
+
     private void sendJsonResponse(HttpServletResponse response, boolean success, String message)
             throws IOException {
 

@@ -470,7 +470,7 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     public int getSearchCount(String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
+        if (keyword == null || keyword.trim().isEmpty()) {//检查关键词是否为空
             return articleDao.count();
         }
 

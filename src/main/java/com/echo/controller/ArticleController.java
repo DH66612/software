@@ -133,18 +133,29 @@ public class ArticleController extends HttpServlet {
                 return;
             }
 
+            // 检查用户是否登录
+            User currentUser = SessionUtils.getCurrentUser(request);
+            if (currentUser == null) {
+                System.out.println("❌ 用户未登录，无法评论");
+                response.sendRedirect(request.getContextPath() + "/user/login?redirect=" +
+                        java.net.URLEncoder.encode(request.getRequestURL() + "?id=" + articleId, "UTF-8"));
+                return;
+            }
+
+            System.out.println("当前登录用户: ID=" + currentUser.getId() + ", 用户名=" + currentUser.getUsername() + ", 昵称=" + currentUser.getNickname());
+
             Comment comment = new Comment();
             comment.setArticleId(Integer.parseInt(articleId));
-            comment.setUserId(1); // 临时用户ID，实际应从session获取
+            comment.setUserId(currentUser.getId()); // 使用当前登录用户的ID
             comment.setContent(content);
             comment.setStatus(1);
 
-            System.out.println("准备发布评论");
+            System.out.println("准备发布评论，用户ID: " + currentUser.getId());
 
             // 发布评论
             CommentService commentService = new CommentServiceImpl();
-            commentService.publishComment(comment);
-            System.out.println("✅ 评论发布成功");
+            Comment publishedComment = commentService.publishComment(comment);
+            System.out.println("✅ 评论发布成功，评论ID: " + publishedComment.getId());
 
             // 重定向回文章详情页
             response.sendRedirect(request.getContextPath() + "/article/detail?id=" + articleId);
@@ -155,7 +166,6 @@ public class ArticleController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/article/detail?id=" + request.getParameter("articleId"));
         }
     }
-
     private void showArticleList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -291,8 +301,24 @@ public class ArticleController extends HttpServlet {
         for (Article article : articles) {
             User author = userService.getUserById(article.getauthorid());
             if (author != null) {
-                article.setAuthorName(author.getNickname() != null ? author.getNickname() : author.getUsername());
+                // 修复逻辑：如果昵称为空或空字符串，使用用户名
+                if (author.getNickname() != null && !author.getNickname().trim().isEmpty()) {
+                    article.setAuthorName(author.getNickname());
+                } else {
+                    article.setAuthorName(author.getUsername());
+                }
                 article.setauthorAvatar(author.getAvatar());
+
+                // 调试信息
+                System.out.println("文章ID: " + article.getid() +
+                        ", 作者ID: " + article.getauthorid() +
+                        ", 用户名: " + author.getUsername() +
+                        ", 昵称: " + author.getNickname() +
+                        ", 最终显示: " + article.getAuthorName());
+            } else {
+                // 如果找不到作者信息，设置默认值
+                article.setAuthorName("未知作者");
+                System.out.println("⚠️ 未找到文章ID " + article.getid() + " 的作者信息，作者ID: " + article.getauthorid());
             }
         }
     }
@@ -499,7 +525,7 @@ public class ArticleController extends HttpServlet {
         // 获取分类列表
         List<Category> categories = categoryService.getEnabledCategories();
 
-        request.setAttribute("articles", articles);//显示信息到请求
+        request.setAttribute("articles", articles);//设置请求属性
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("totalCount", totalCount);
@@ -626,8 +652,8 @@ public class ArticleController extends HttpServlet {
             request.setAttribute("categories", categories);
             request.setAttribute("action", "publish");
 
-            request.getRequestDispatcher("/publish-article.jsp").forward(request, response);
-        }
+            request.getRequestDispatcher("/publish-article.jsp").forward(request, response);//跳转到文章发布页面
+        }//找到名为 publish-article.jsp 的页面,将当前的请求和响应对象原封不动传递给目标页面
     }
 
 
@@ -639,7 +665,7 @@ public class ArticleController extends HttpServlet {
         if (currentUser == null) {
             response.sendRedirect(request.getContextPath() + "/user/login");
             return;
-        }String idStr = request.getParameter("id");
+        }String idStr = request.getParameter("id");//获取编辑的次数
         String title = request.getParameter("title");
         String content = request.getParameter("content");
         String[] categoryIds = request.getParameterValues("categoryIds");

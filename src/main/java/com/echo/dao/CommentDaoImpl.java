@@ -69,45 +69,71 @@ public class CommentDaoImpl implements CommentDao {
         return result;
     }
 //通过文章ID来寻找它相对应的评论
-    @Override
-    public List<Comment> findByArticleId(Integer articleId, int offset, int limit) {
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        List<Comment> comments = new ArrayList<>();
+@Override
+public List<Comment> findByArticleId(Integer articleId, int offset, int limit) {
+    Connection conn = null;
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
+    List<Comment> comments = new ArrayList<>();
 
-        try {
-            conn = JdbcUtils.getConnection();
-            String sql = "SELECT c.*, u.username as author_name, u.nickname as author_nickname, u.avatar as author_avatar " +
-                    "FROM comments c " +
-                    "LEFT JOIN users u ON c.user_id = u.id " +
-                    "WHERE c.article_id = ? AND c.status = 1 " +
-                    "ORDER BY c.create_time DESC LIMIT ? OFFSET ?";
-            pstmt = conn.prepareStatement(sql);
-            pstmt.setInt(1, articleId);
-            pstmt.setInt(2, limit);
-            pstmt.setInt(3, offset);
+    try {
+        conn = JdbcUtils.getConnection();
+        String sql = "SELECT c.*, u.username as author_name, u.nickname as author_nickname, u.avatar as author_avatar " +
+                "FROM comments c " +
+                "LEFT JOIN users u ON c.user_id = u.id " +
+                "WHERE c.article_id = ? AND c.status = 1 " +
+                "ORDER BY c.create_time DESC LIMIT ? OFFSET ?";
+        pstmt = conn.prepareStatement(sql);
+        pstmt.setInt(1, articleId);
+        pstmt.setInt(2, limit);
+        pstmt.setInt(3, offset);
 
-            rs = pstmt.executeQuery();
+        rs = pstmt.executeQuery();
 
-            while (rs.next()) {//构建评论对象列表
-                Comment comment = resultSetToComment(rs);
-                // 设置作者信息
-                String nickname = rs.getString("author_nickname");
-                String username = rs.getString("author_name");
-                comment.setAuthorName(nickname != null ? nickname : username);
-                comment.setAuthorAvatar(rs.getString("author_avatar"));
-                comments.add(comment);
+        while (rs.next()) {
+            Comment comment = resultSetToComment(rs);
+
+            // 设置作者信息 - 修复逻辑
+            String nickname = rs.getString("author_nickname");
+            String username = rs.getString("author_name");
+            String avatar = rs.getString("author_avatar");
+
+            // 优先使用昵称，如果昵称为空则使用用户名
+            if (nickname != null && !nickname.trim().isEmpty()) {
+                comment.setAuthorName(nickname.trim());
+            } else if (username != null && !username.trim().isEmpty()) {
+                comment.setAuthorName(username.trim());
+            } else {
+                comment.setAuthorName("匿名用户");
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException("查询评论失败", e);
-        } finally {
-            JdbcUtils.close(rs, pstmt, conn);
+
+            // 设置头像，如果为空则使用默认头像
+            if (avatar != null && !avatar.trim().isEmpty()) {
+                comment.setAuthorAvatar(avatar.trim());
+            } else {
+                comment.setAuthorAvatar("/images/avatar-default.png");
+            }
+
+            // 调试信息
+            System.out.println("评论ID: " + comment.getId() +
+                    ", 用户ID: " + comment.getUserId() +
+                    ", 昵称: " + nickname +
+                    ", 用户名: " + username +
+                    ", 最终显示: " + comment.getAuthorName());
+
+            comments.add(comment);
         }
 
-        return comments;
+        System.out.println("查询到 " + comments.size() + " 条评论");
+    } catch (SQLException e) {
+        e.printStackTrace();
+        throw new RuntimeException("查询评论失败", e);
+    } finally {
+        JdbcUtils.close(rs, pstmt, conn);
     }
+
+    return comments;
+}
 //通过文章id来
     @Override
     public int countByArticleId(Integer articleId) {
@@ -137,6 +163,7 @@ public class CommentDaoImpl implements CommentDao {
     }
 
     @Override
+
     public Comment findById(Integer id) {
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -144,15 +171,36 @@ public class CommentDaoImpl implements CommentDao {
         Comment comment = null;
 
         try {
-            try (Connection connection = conn = JdbcUtils.getConnection()) {
-            }
-            String sql = "SELECT * FROM comments WHERE id = ?";
+            conn = JdbcUtils.getConnection(); // 修复这里的语法错误
+            String sql = "SELECT c.*, u.username as author_name, u.nickname as author_nickname, u.avatar as author_avatar " +
+                    "FROM comments c " +
+                    "LEFT JOIN users u ON c.user_id = u.id " +
+                    "WHERE c.id = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, id);
             rs = pstmt.executeQuery();
 
             if (rs.next()) {
                 comment = resultSetToComment(rs);
+
+                // 设置作者信息
+                String nickname = rs.getString("author_nickname");
+                String username = rs.getString("author_name");
+                String avatar = rs.getString("author_avatar");
+
+                if (nickname != null && !nickname.trim().isEmpty()) {
+                    comment.setAuthorName(nickname.trim());
+                } else if (username != null && !username.trim().isEmpty()) {
+                    comment.setAuthorName(username.trim());
+                } else {
+                    comment.setAuthorName("匿名用户");
+                }
+
+                if (avatar != null && !avatar.trim().isEmpty()) {
+                    comment.setAuthorAvatar(avatar.trim());
+                } else {
+                    comment.setAuthorAvatar("/images/avatar-default.png");
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -163,7 +211,6 @@ public class CommentDaoImpl implements CommentDao {
 
         return comment;
     }
-
     @Override
     public int update(Comment comment) {
         Connection conn = null;
@@ -172,7 +219,7 @@ public class CommentDaoImpl implements CommentDao {
 
         try {
             conn = JdbcUtils.getConnection();
-            String sql = "UPDATE comments SET content = ?, status = ?, update_time = ? WHERE id = ?";
+            String sql = "UPDATE comments SET content = ?, status = ?, update_time = ? WHERE id = ?";//?是参数占位符
             pstmt = conn.prepareStatement(sql);
 
             pstmt.setString(1, comment.getContent());
@@ -185,7 +232,7 @@ public class CommentDaoImpl implements CommentDao {
             e.printStackTrace();
             throw new RuntimeException("更新评论失败", e);
         } finally {
-            JdbcUtils.close(null, pstmt, conn);
+            JdbcUtils.close(null, pstmt, conn);//只关闭连接与预编译语句
         }
 
         return result;
@@ -201,7 +248,7 @@ public class CommentDaoImpl implements CommentDao {
             conn = JdbcUtils.getConnection();
             String sql = "DELETE FROM comments WHERE id = ?";
             pstmt = conn.prepareStatement(sql);
-            pstmt.setInt(1, id);
+            pstmt.setInt(1, id);//SQL参数位置索引
 
             result = pstmt.executeUpdate();
         } catch (SQLException e) {

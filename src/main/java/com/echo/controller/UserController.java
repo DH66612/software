@@ -332,9 +332,7 @@ public class UserController extends HttpServlet {
             request.setAttribute("username", username); // 显示用户信息到请求
             request.getRequestDispatcher("/login.jsp").forward(request, response);
         }
-    }/**
-     * 处理用户注册
-     */
+    }
     private void register(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 

@@ -61,9 +61,7 @@ public class CharacterEncodingFilter implements Filter {
         System.out.println("字符编码过滤器处理完成");
     }
 
-    /**
-     * 销毁方法 - 清理资源
-     */
+
     @Override
     public void destroy() {
         System.out.println("字符编码过滤器销毁...");

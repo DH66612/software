@@ -7,10 +7,6 @@ import com.echo.entity.Category;
 import java.util.Date;
 import java.util.List;
 
-/**
- * 分类服务实现类
- * 处理分类相关的业务逻辑
- */
 public class CategoryServiceImpl implements CategoryService {
     private CategoryDao categoryDao;
 

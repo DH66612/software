@@ -9,6 +9,7 @@ import com.echo.utils.SessionUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -329,6 +330,9 @@ public class ArticleController extends HttpServlet {
 
             // 增加阅读量,点击一次算一次
             articleService.incrementViewCount(id);
+            
+            boolean hasLiked = hasLikedArticle(request, id);
+            System.out.println("用户点赞状态: " + hasLiked);
 
             // 获取当前用户
             User currentUser = SessionUtils.getCurrentUser(request);
@@ -859,13 +863,6 @@ public class ArticleController extends HttpServlet {
     private void likeArticle(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // 检查用户是否登录
-        User currentUser = SessionUtils.getCurrentUser(request);
-        if (currentUser == null) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "请先登录");//返回401错误，请先登录
-            return;
-        }
-
         String idStr = request.getParameter("id");
 
         try {
@@ -874,10 +871,21 @@ public class ArticleController extends HttpServlet {
             }
 
             Integer id = Integer.parseInt(idStr);
+
+            // 检查是否已经点赞（Cookie方案）
+            if (hasLikedArticle(request, id)) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("{\"success\": false, \"message\": \"您已经点赞过此文章\"}");
+                return;
+            }
+
+            // 执行点赞
             boolean success = articleService.likeArticle(id);
 
             if (success) {
-                response.setStatus(HttpServletResponse.SC_OK);//设置HTTP状态码为200
+                // 设置点赞Cookie
+                setLikedCookie(response, id);
+                response.setStatus(HttpServletResponse.SC_OK);
                 response.getWriter().write("{\"success\": true}");
             } else {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -890,7 +898,7 @@ public class ArticleController extends HttpServlet {
         }
     }
 
-
+    // 保留原有的取消点赞方法
     private void unlikeArticle(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -912,11 +920,13 @@ public class ArticleController extends HttpServlet {
             boolean success = articleService.unlikeArticle(id);
 
             if (success) {
+                // 移除点赞Cookie
+                removeLikedCookie(response, id);
                 response.setStatus(HttpServletResponse.SC_OK);
-                response.getWriter().write("{\"success\": true}");//输出JSON成功响应
+                response.getWriter().write("{\"success\": true}");
             } else {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);//设置HTTP状态码为400
-                response.getWriter().write("{\"success\": false, \"message\": \"取消点赞失败\"}"); //输出取消点赞失败JSON
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("{\"success\": false, \"message\": \"取消点赞失败\"}");
             }
 
         } catch (Exception e) {
@@ -924,6 +934,40 @@ public class ArticleController extends HttpServlet {
             response.getWriter().write("{\"success\": false, \"message\": \"" + e.getMessage() + "\"}");
         }
     }
+
+    // 辅助方法：检查是否已经点赞
+    private boolean hasLikedArticle(HttpServletRequest request, Integer articleId) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return false;
+        }
+
+        String likeCookieName = "article_liked_" + articleId;
+        for (Cookie cookie : cookies) {
+            if (likeCookieName.equals(cookie.getName())) {
+                return "true".equals(cookie.getValue());
+            }
+        }
+        return false;
+    }
+
+    // 辅助方法：设置点赞Cookie
+    private void setLikedCookie(HttpServletResponse response, Integer articleId) {
+        Cookie likeCookie = new Cookie("article_liked_" + articleId, "true");
+        likeCookie.setMaxAge(30 * 24 * 60 * 60); // 30天有效期
+        likeCookie.setPath("/");
+        likeCookie.setHttpOnly(true);
+        response.addCookie(likeCookie);
+    }
+
+    // 辅助方法：移除点赞Cookie
+    private void removeLikedCookie(HttpServletResponse response, Integer articleId) {
+        Cookie likeCookie = new Cookie("article_liked_" + articleId, "");
+        likeCookie.setMaxAge(0); // 立即过期
+        likeCookie.setPath("/");
+        response.addCookie(likeCookie);
+    }
+
 
 
     private void showPublishPage(HttpServletRequest request, HttpServletResponse response)

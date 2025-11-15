@@ -392,7 +392,7 @@
         <a href="${pageContext.request.contextPath}/article/publish" class="btn">开始写作</a >
     </section>
 
-    <h2 class="section-title">热门文章</h2>
+
 
     <div class="articles-grid">
 
@@ -402,7 +402,7 @@
                 阅读则让我们跨越时空界限，与智者对话，汲取智慧精华。<br>
                 在这里，你可以自由表达，也可以从他人的文字中获得启发与共鸣。<br>
                 开始你的创作之旅，让思想在文字中绽放光彩！</p >
-            <a href="${pageContext.request.contextPath}/article/publish" class="btn">开始写作</a >
+
         </div>
     </div>
 
@@ -412,7 +412,7 @@
 </div>
 
 <footer class="footer">
-    <p>回声网络 © 2024 - 让每个人都能发出自己的声音</p >
+    <p>回声网络 © 2025 - 让每个人都能发出自己的声音</p >
     <div class="footer-links">
         <a href="${pageContext.request.contextPath}/terms_of_service.jsp">服务条款</a >
         <a href="${pageContext.request.contextPath}/privacy_policy.jsp">隐私政策</a >

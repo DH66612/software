@@ -353,6 +353,22 @@ public class ArticleController extends HttpServlet {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "文章不存在");
                 return;
             }
+            User author = userService.getUserById(article.getauthorid());
+            if (author != null) {
+                // 如果昵称为空或空字符串，使用用户名
+                if (author.getNickname() != null && !author.getNickname().trim().isEmpty()) {
+                    article.setAuthorName(author.getNickname());
+                } else {
+                    article.setAuthorName(author.getUsername());
+                }
+                article.setauthorAvatar(author.getAvatar());
+
+                System.out.println("作者信息设置成功: " + article.getAuthorName());
+            } else {
+                article.setAuthorName("未知作者");
+                System.out.println("⚠️ 未找到文章作者信息，作者ID: " + article.getauthorid());
+            }
+
 
             // 增加阅读量,点击一次算一次
             articleService.incrementViewCount(id);

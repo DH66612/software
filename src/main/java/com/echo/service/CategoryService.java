@@ -19,6 +19,7 @@ public interface CategoryService {
     boolean disableCategory(Integer Id,Integer status)throws RuntimeException;
     int getArticleCountByCategory(Integer id);
 
+    List<Category> getCategoriesByArticleId(Integer articleId);
 
     List<Category> getPopularCategories(int limit);
 

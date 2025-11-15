@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -187,15 +188,6 @@
             color: #6a11cb;
         }
 
-        .article-title.disabled {
-            color: #666;
-            cursor: not-allowed;
-        }
-
-        .article-title.disabled:hover {
-            color: #666;
-        }
-
         .article-author {
             display: flex;
             align-items: center;
@@ -229,10 +221,12 @@
             font-size: 0.8em;
             color: #666;
             text-decoration: none;
+            transition: all 0.3s ease;
         }
 
         .article-category:hover {
             background: #e9ecef;
+            color: #6a11cb;
         }
 
         .article-summary {
@@ -288,12 +282,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
         }
 
         .modal-header h3 {
             font-size: 1.5em;
-            color: #333;
+            color: white;
             font-weight: 600;
+            margin: 0;
         }
 
         .close-modal {
@@ -301,11 +298,12 @@
             border: none;
             font-size: 1.5em;
             cursor: pointer;
-            color: #666;
+            color: white;
+            opacity: 0.8;
         }
 
         .close-modal:hover {
-            color: #333;
+            opacity: 1;
         }
 
         .modal-body {
@@ -330,10 +328,6 @@
             margin-bottom: 20px;
         }
 
-        .category-checkbox {
-            display: none;
-        }
-
         .category-label {
             display: inline-block;
             padding: 10px 20px;
@@ -344,10 +338,12 @@
             transition: all 0.3s ease;
             font-weight: 500;
             color: #666;
+            text-decoration: none;
             user-select: none;
         }
 
-        .category-checkbox:checked + .category-label {
+        .category-label:hover,
+        .category-label.active {
             background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             color: white;
             border-color: #6a11cb;
@@ -355,10 +351,7 @@
             box-shadow: 0 5px 15px rgba(106, 17, 203, 0.3);
         }
 
-        .category-label:hover {
-            border-color: #6a11cb;
-            transform: translateY(-2px);
-        }/* 分页 */
+        /* 分页 */
         .pagination {
             display: flex;
             justify-content: center;
@@ -376,7 +369,19 @@
             transition: all 0.3s ease;
         }
 
+        .page-btn:hover,
+        .page-btn.active {
+            background: #6a11cb;
+            color: white;
+            border-color: #6a11cb;
+        }
 
+        .page-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 搜索样式 */
         .search-form {
             margin-right: 15px;
         }
@@ -421,90 +426,75 @@
             background: #2575fc;
         }
 
-        /* 移动端搜索样式 */
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .empty-state h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            color: #666;
+        }
+
+        .empty-state p {
+            color: #888;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background: #6a11cb;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #2575fc;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(37, 117, 252, 0.3);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
         @media (max-width: 768px) {
-            .search-form {
-                margin-right: 10px;
+            .container {
+                margin-top: 70px;
+            }
+
+            .page-header h1 {
+                font-size: 2em;
+            }
+
+            .nav-actions {
+                gap: 10px;
+            }
+
+            .filter-btn {
+                padding: 8px 15px;
+                font-size: 0.9em;
             }
 
             .search-input {
                 width: 150px;
-                padding: 6px 12px;
             }
 
-            .search-btn {
-                padding: 6px 12px;
-            }
-
-            .page-btn:hover, .page-btn.active {
-                background: #6a11cb;
-                color: white;
-                border-color: #6a11cb;
-            }
-
-            .page-btn.disabled {
-                opacity: 0.5;
-                cursor: not-allowed;
-            }
-
-            /* 空状态 */
-            .empty-state {
-                text-align: center;
-                padding: 60px 20px;
-                background: white;
-                border-radius: 15px;
-                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-            }
-
-            .empty-state h3 {
-                font-size: 1.5em;
-                margin-bottom: 15px;
-                color: #666;
-            }
-
-            .empty-state p {
-                color: #888;
-                margin-bottom: 25px;
-            }
-
-            .btn {
-                display: inline-block;
-                padding: 12px 25px;
-                background: #6a11cb;
-                color: white;
-                text-decoration: none;
-                border-radius: 8px;
-                font-weight: 600;
-                transition: all 0.3s ease;
-            }
-
-            .btn:hover {
-                background: #2575fc;
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(37, 117, 252, 0.3);
-            }
-
-            @media (max-width: 768px) {
-                .container {
-                    margin-top: 70px;
-                }
-
-                .page-header h1 {
-                    font-size: 2em;
-                }
-
-                .nav-actions {
-                    gap: 10px;
-                }
-
-                .filter-btn {
-                    padding: 8px 15px;
-                    font-size: 0.9em;
-                }
-
-                .categories-container {
-                    justify-content: center;
-                }
+            .categories-container {
+                justify-content: center;
             }
         }
     </style>
@@ -513,7 +503,7 @@
 <!-- 页面头部 -->
 <header class="header">
     <nav class="nav">
-        <a href="${pageContext.request.contextPath}/index.jsp" class="logo">回声网络</a >
+        <a href="${pageContext.request.contextPath}/index.jsp" class="logo">回声网络</a>
         <div class="nav-actions">
             <form action="${pageContext.request.contextPath}/article/list" method="get" class="search-form" id="searchForm">
                 <div class="search-container">
@@ -527,17 +517,19 @@
             </button>
         </div>
     </nav>
-</header><div class="container">
+</header>
+
+<div class="container">
     <div class="page-header">
         <h1>发现精彩内容</h1>
-        <p>阅读来自回声网络创作者的优质文章</p >
+        <p>阅读来自回声网络创作者的优质文章</p>
     </div>
 
     <!-- 当前筛选状态 -->
     <c:if test="${not empty currentCategory}">
         <div class="filter-status">
             <span>当前筛选: <span class="current-filter">${currentCategory.name}</span></span>
-            <a href="#" class="clear-filter">清除筛选</a >
+            <a href="${pageContext.request.contextPath}/article/list" class="clear-filter">清除筛选</a>
         </div>
     </c:if>
 
@@ -546,32 +538,28 @@
         <c:choose>
             <c:when test="${not empty sessionScope.currentUser}">
                 <p>欢迎回来，<strong>${sessionScope.currentUser.username}</strong>！
-                    <a href="${pageContext.request.contextPath}/article/publish" style="color: #6a11cb; text-decoration: none; font-weight: 500;">开始写作</a ></p >
+                    <a href="${pageContext.request.contextPath}/article/publish" style="color: #6a11cb; text-decoration: none; font-weight: 500;">开始写作</a></p>
             </c:when>
             <c:otherwise>
                 <p class="login-prompt">
                     登录后可以查看文章详情、点赞和评论。
-                    <a href="${pageContext.request.contextPath}/user/login">立即登录</a > 或
-                    <a href="${pageContext.request.contextPath}/user/register">注册账号</a >
-                </p >
+                    <a href="${pageContext.request.contextPath}/user/login">立即登录</a> 或
+                    <a href="${pageContext.request.contextPath}/user/register">注册账号</a>
+                </p>
             </c:otherwise>
         </c:choose>
-
-
-
     </div>
+
     <!-- 文章列表 -->
     <div class="articles-container">
         <c:choose>
             <c:when test="${not empty articles}">
                 <c:forEach items="${articles}" var="article">
                     <div class="article-card">
-                        <!-- 移除了多余的 article-item div -->
                         <div class="article-header">
                             <a href="${pageContext.request.contextPath}/article/detail?id=${article.id}"
                                class="article-title">${article.title}</a>
                             <div class="article-author">
-                                <!-- 如果有作者头像可以在这里显示 -->
                                 <span class="author-name">作者: ${article.authorName}</span>
                             </div>
                         </div>
@@ -580,7 +568,7 @@
                         <c:if test="${not empty article.categories}">
                             <div class="article-categories">
                                 <c:forEach var="category" items="${article.categories}">
-                                    <a href="${pageContext.request.contextPath}/article/by-category?id=${category.id}"
+                                    <a href="${pageContext.request.contextPath}/article/list?categoryId=${category.id}"
                                        class="article-category">${category.name}</a>
                                 </c:forEach>
                             </div>
@@ -597,7 +585,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- 注意：这里只有一个闭合div，对应article-card -->
                 </c:forEach>
             </c:when>
             <c:otherwise>
@@ -617,39 +604,37 @@
         </c:choose>
     </div>
 
-<!-- 分页控件 -->
-<div class="pagination">
-    <!-- 上一页 -->
-    <c:if test="${currentPage > 1}">
-        <a href="${pageContext.request.contextPath}/article/list、page=${currentPage-1}
-"<c:if test="${not empty currentCategoryId}">&categoryId=${currentCategoryId}</c:if>
-    <c:if test="${not empty param.keyword}">&keyword=${param.keyword}</c:if>"
-    class="page-btn">上一页</a >
-    </c:if>
+    <!-- 分页控件 -->
+    <c:if test="${not empty articles && totalPages > 1}">
+        <div class="pagination">
+            <!-- 上一页 -->
+            <c:if test="${currentPage > 1}">
+                <a href="${pageContext.request.contextPath}/article/list?page=${currentPage-1}<c:if test="${not empty currentCategoryId}">&categoryId=${currentCategoryId}</c:if><c:if test="${not empty param.keyword}">&keyword=${param.keyword}</c:if>"
+                   class="page-btn">上一页</a>
+            </c:if>
 
-    <!-- 页码 -->
-    <c:forEach begin="1" end="${totalPages}" var="pageNum">
-        <c:choose>
-            <c:when test="${pageNum == currentPage}">
-                <span class="page-btn active">${pageNum}</span>
-            </c:when>
-            <c:otherwise>
-                <a href="${pageContext.request.contextPath}/article/list?page=${pageNum}
-                   <c:if test="${not empty currentCategoryId}">&categoryId=${currentCategoryId}</c:if>
-                   <c:if test="${not empty param.keyword}">&keyword=${param.keyword}</c:if>"
-                   class="page-btn">${pageNum}</a >
-            </c:otherwise>
-        </c:choose>
-    </c:forEach>
+            <!-- 页码 -->
+            <c:forEach begin="1" end="${totalPages}" var="pageNum">
+                <c:choose>
+                    <c:when test="${pageNum == currentPage}">
+                        <span class="page-btn active">${pageNum}</span>
+                    </c:when>
+                    <c:otherwise>
+                        <a href="${pageContext.request.contextPath}/article/list?page=${pageNum}<c:if test="${not empty currentCategoryId}">&categoryId=${currentCategoryId}</c:if><c:if test="${not empty param.keyword}">&keyword=${param.keyword}</c:if>"
+                           class="page-btn">${pageNum}</a>
+                    </c:otherwise>
+                </c:choose>
+            </c:forEach>
 
-    <!-- 下一页 -->
-    <c:if test="${currentPage < totalPages}">
-        <a href="${pageContext.request.contextPath}/article/list?page=${currentPage + 1}
-           <c:if test="${not empty currentCategoryId}">&categoryId=${currentCategoryId}</c:if>
-           <c:if test="${not empty param.keyword}">&keyword=${param.keyword}</c:if>"
-           class="page-btn">下一页</a >
+            <!-- 下一页 -->
+            <c:if test="${currentPage < totalPages}">
+                <a href="${pageContext.request.contextPath}/article/list?page=${currentPage + 1}<c:if test="${not empty currentCategoryId}">&categoryId=${currentCategoryId}</c:if><c:if test="${not empty param.keyword}">&keyword=${param.keyword}</c:if>"
+                   class="page-btn">下一页</a>
+            </c:if>
+        </div>
     </c:if>
 </div>
+
 <!-- 分类筛选模态框 -->
 <div class="modal" id="categoryModal">
     <div class="modal-content">
@@ -659,18 +644,18 @@
         </div>
         <div class="modal-body">
             <div class="categories-container" id="modalCategories">
-                <!-- 分类将通过JavaScript动态加载 -->
+                <!-- 修复：使用正确的参数名 categoryId -->
                 <c:forEach var="category" items="${categories}">
-                    <a href="${pageContext.request.contextPath}/article/by-category?=${category.id}"
+                    <a href="${pageContext.request.contextPath}/article/list?categoryId=${category.id}"
                        class="category-label ${currentCategoryId == category.id ? 'active' : ''}">
-                        ${category.name}
-                    </a >
+                            ${category.name}
+                    </a>
                 </c:forEach>
             </div>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" id="cancelCategorySelection">取消</button>
-            <a href="${pageContext.request.contextPath}/article/list" class="btn btn-primary">查看全部</a >
+            <a href="${pageContext.request.contextPath}/article/list" class="btn">查看全部</a>
         </div>
     </div>
 </div>
@@ -683,18 +668,30 @@
         const cancelCategorySelectionBtn = document.getElementById('cancelCategorySelection');
         const categoryModal = document.getElementById('categoryModal');
 
+        console.log("DOM加载完成，绑定分类筛选事件");
+
         // 打开模态框
-        openCategoryModalBtn.addEventListener('click', function() {
-            categoryModal.classList.add('active');
-        });
+        if (openCategoryModalBtn) {
+            openCategoryModalBtn.addEventListener('click', function() {
+                console.log("点击分类筛选按钮");
+                categoryModal.classList.add('active');
+            });
+        } else {
+            console.error("找不到分类筛选按钮");
+        }
 
         // 关闭模态框
         function closeModal() {
             categoryModal.classList.remove('active');
         }
 
-        closeCategoryModalBtn.addEventListener('click', closeModal);
-        cancelCategorySelectionBtn.addEventListener('click', closeModal);
+        if (closeCategoryModalBtn) {
+            closeCategoryModalBtn.addEventListener('click', closeModal);
+        }
+
+        if (cancelCategorySelectionBtn) {
+            cancelCategorySelectionBtn.addEventListener('click', closeModal);
+        }
 
         // 点击模态框外部关闭
         categoryModal.addEventListener('click', function(e) {
@@ -703,43 +700,20 @@
             }
         });
 
-        // 添加平滑滚动效果
-        document.querySelectorAll('a[href^="#"]:not(.category-label)').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                const href = this.getAttribute('href');
-                if (href !== '#') { // 只处理真正的锚点，不是空链接
-                    e.preventDefault();
-                    const target = document.querySelector(href);
-                    if (target) {
-                        target.scrollIntoView({
-                            behavior: 'smooth'
-                        });
-                    }
-                }
-            });
-        });
-
-        // 添加：点击分类链接后自动关闭模态框
+        // 分类链接点击后自动关闭模态框
         document.querySelectorAll('.category-label').forEach(link => {
             link.addEventListener('click', function() {
+                console.log("点击分类链接:", this.href);
                 closeModal();
             });
         });
-    });
-    // 显示登录提示
-    function showLoginPrompt() {
-        alert('请先登录后再查看文章详情');
-         //可选：跳转到登录页面
-        // window.location.href = '${pageContext.request.contextPath}/';
-    }
 
-    // 处理键盘事件
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            document.querySelectorAll('.modal.active').forEach(modal => {
-                modal.classList.remove('active');
-            });
-        }
+        // 处理键盘事件
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
     });
 </script>
 </body>

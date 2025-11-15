@@ -1,6 +1,7 @@
-<<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -84,11 +85,22 @@
             gap: 5px;
         }
 
+        /* 分类区域样式 */
+        .article-categories-section {
+            margin-bottom: 20px;
+        }
+
+        .categories-label {
+            font-weight: 500;
+            color: #666;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
         .article-categories {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            margin-bottom: 20px;
         }
 
         .article-category {
@@ -106,6 +118,12 @@
             background: #6a11cb;
             color: white;
             border-color: #6a11cb;
+        }
+
+        .no-categories {
+            color: #999;
+            font-style: italic;
+            font-size: 0.9em;
         }
 
         .article-stats {
@@ -338,16 +356,18 @@
             justify-content: center;
             gap: 8px;
             margin-top: 30px;
-        }.page-btn {
-             padding: 10px 15px;
-             background: white;
-             border: 1px solid #e1e5ee;
-             border-radius: 8px;
-             text-decoration: none;
-             color: #666;
-             transition: all 0.3s ease;
-             font-size: 0.9em;
-         }
+        }
+
+        .page-btn {
+            padding: 10px 15px;
+            background: white;
+            border: 1px solid #e1e5ee;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #666;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
 
         .page-btn:hover, .page-btn.active {
             background: #6a11cb;
@@ -441,14 +461,23 @@
                 <span>阅读: ${article.viewCount}</span>
             </div>
 
-            <c:if test="${not empty article.categories}">
+            <!-- 分类区域 -->
+            <div class="article-categories-section">
+                <div class="categories-label">分类:</div>
                 <div class="article-categories">
-                    <c:forEach var="category" items="${article.categories}">
-                        <a href="${pageContext.request.contextPath}/article/list?categoryId=${category.id}"
-                           class="article-category">${category.name}</a>
-                    </c:forEach>
+                    <c:choose>
+                        <c:when test="${not empty article.categories && fn:length(article.categories) > 0}">
+                            <c:forEach var="category" items="${article.categories}">
+                                <a href="${pageContext.request.contextPath}/article/list?categoryId=${category.id}"
+                                   class="article-category">${category.name}</a>
+                            </c:forEach>
+                        </c:when>
+                        <c:otherwise>
+                            <span class="no-categories">无</span>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
-            </c:if>
+            </div>
 
             <div class="article-stats">
                 <button class="like-btn stat-item ${hasLiked ? 'liked' : ''}"

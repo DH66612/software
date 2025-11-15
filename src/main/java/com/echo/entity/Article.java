@@ -1,5 +1,5 @@
 package com.echo.entity;
-import jdk.jfr.Category;
+import com.echo.entity.Category;
 
 import  java.util.Date;
 import  java.util.List;

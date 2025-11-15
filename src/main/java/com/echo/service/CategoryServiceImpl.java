@@ -4,6 +4,7 @@ import com.echo.dao.CategoryDao;
 import com.echo.dao.CategoryDaoImpl;
 import com.echo.entity.Category;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -46,7 +47,13 @@ public class CategoryServiceImpl implements CategoryService {
 
         return categoryDao.findByName(name.trim());
     }
-
+    @Override
+    public List<Category> getCategoriesByArticleId(Integer articleId) {
+        if (articleId == null) {
+            return new ArrayList<>();
+        }
+        return categoryDao.findByArticleId(articleId);
+    }
     @Override
     public Category createCategory(Category category) throws RuntimeException {
         System.out.println("开始创建分类: " + category.getName());

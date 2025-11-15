@@ -178,14 +178,13 @@ public class ArticleController extends HttpServlet {
             Integer categoryId = null;
             Category currentCategory = null;
 
-          ;
+
 
 
             if (categoryIdParam != null && !categoryIdParam.isEmpty()) {
                 categoryId = Integer.parseInt(categoryIdParam);
                 currentCategory = categoryService.getCategoryById(categoryId);
             }
-
             // 分页
             String pageParam = request.getParameter("page");
             int page = 1;
@@ -205,7 +204,7 @@ public class ArticleController extends HttpServlet {
                 request.setAttribute("keyword", keyword.trim());
 
             } else if (categoryId != null) {
-                // 按分类获取文章
+                // 按分类获取文章 - 包括该分类下的所有文章
                 articles = articleService.getArticlesByCategoryid(categoryId, page, pageSize);
                 totalCount = articleService.getArticleCountByCategoryId(categoryId);
             } else {
@@ -353,33 +352,36 @@ public class ArticleController extends HttpServlet {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "文章不存在");
                 return;
             }
+
+            // 获取作者信息
             User author = userService.getUserById(article.getauthorid());
             if (author != null) {
-                // 如果昵称为空或空字符串，使用用户名
                 if (author.getNickname() != null && !author.getNickname().trim().isEmpty()) {
                     article.setAuthorName(author.getNickname());
                 } else {
                     article.setAuthorName(author.getUsername());
                 }
                 article.setauthorAvatar(author.getAvatar());
-
                 System.out.println("作者信息设置成功: " + article.getAuthorName());
             } else {
                 article.setAuthorName("未知作者");
                 System.out.println("⚠️ 未找到文章作者信息，作者ID: " + article.getauthorid());
             }
 
+            // 新增：获取文章的分类
+            List<Category> articleCategories = categoryService.getCategoriesByArticleId(id);
+            article.setcategories(articleCategories);
+            System.out.println("文章分类数量: " + (articleCategories != null ? articleCategories.size() : 0));
 
-            // 增加阅读量,点击一次算一次
+            // 增加阅读量
             articleService.incrementViewCount(id);
-            
+
             boolean hasLiked = hasLikedArticle(request, id);
             System.out.println("用户点赞状态: " + hasLiked);
 
             // 获取当前用户
             User currentUser = SessionUtils.getCurrentUser(request);
             System.out.println("当前用户: " + currentUser);
-
 
             CommentService commentService = new CommentServiceImpl();
 
@@ -402,16 +404,11 @@ public class ArticleController extends HttpServlet {
             // 获取评论列表和总数
             List<Comment> comments = commentService.getCommentsByArticleId(id, commentPage, commentPageSize);
             int totalComments = commentService.getCommentCountByArticleId(id);
-            int totalCommentPages = (int) Math.ceil((double) totalComments / commentPageSize);//计算评论总页数
+            int totalCommentPages = (int) Math.ceil((double) totalComments / commentPageSize);
 
             System.out.println("查询到的评论数量: " + comments.size());
             System.out.println("评论总数: " + totalComments);
             System.out.println("评论总页数: " + totalCommentPages);
-
-            // 打印每条评论的详细信息
-            for (Comment comment : comments) {
-                System.out.println("评论ID: " + comment.getId() + ", 内容: " + comment.getContent() + ", 作者: " + comment.getAuthorName());
-            }
 
             // 设置评论相关属性
             request.setAttribute("comments", comments);
@@ -422,6 +419,7 @@ public class ArticleController extends HttpServlet {
             // 设置文章和用户属性
             request.setAttribute("article", article);
             request.setAttribute("currentUser", currentUser);
+            request.setAttribute("hasLiked", hasLiked);
 
             System.out.println("=== 文章详情加载完成，准备转发 ===");
 
@@ -430,7 +428,7 @@ public class ArticleController extends HttpServlet {
 
         } catch (NumberFormatException e) {
             System.out.println("文章ID格式错误: " + e.getMessage());
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "文章ID格式错误");//返回400错误
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "文章ID格式错误");
         } catch (Exception e) {
             System.out.println("加载文章详情异常: " + e.getMessage());
             e.printStackTrace();
@@ -621,8 +619,8 @@ public class ArticleController extends HttpServlet {
         String title = request.getParameter("title");
         String content = request.getParameter("content");
         String[] categoryIds = request.getParameterValues("categoryIds");
-        String allowComment = request.getParameter("allowComment");
-        String summary = request.getParameter("summary"); // 新增摘要参数
+        String summary = request.getParameter("summary");
+
         try {
             // 数据验证
             if (title == null || title.trim().isEmpty()) {
@@ -636,15 +634,30 @@ public class ArticleController extends HttpServlet {
             Article article = new Article();
             article.settitle(title.trim());
             article.setcontent(content.trim());
-            article.setSummary(summary); // 设置摘要字段
-            article.setauthorid(currentUser.getId());// 转换分类ID
+            article.setSummary(summary);
+            article.setauthorid(currentUser.getId());
+
+            // 转换分类ID - 允许为空（不选择分类）
             int[] categoryIdArray = null;
             if (categoryIds != null && categoryIds.length > 0) {
                 categoryIdArray = new int[categoryIds.length];
                 for (int i = 0; i < categoryIds.length; i++) {
-                    categoryIdArray[i] = Integer.parseInt(categoryIds[i]);
+                    try {
+                        categoryIdArray[i] = Integer.parseInt(categoryIds[i]);
+                    } catch (NumberFormatException e) {
+                        System.out.println("⚠️ 分类ID格式错误: " + categoryIds[i]);
+                        // 跳过无效的分类ID
+                    }
+                }
+
+                // 如果所有分类ID都无效，设置为null
+                if (categoryIdArray.length == 0) {
+                    categoryIdArray = null;
                 }
             }
+
+            System.out.println("📝 发布文章 - 标题: " + title);
+            System.out.println("📝 选择的分类数量: " + (categoryIdArray != null ? categoryIdArray.length : 0));
 
             // 发布文章
             Article publishedArticle = articleService.publishArticle(article, categoryIdArray);
@@ -653,6 +666,7 @@ public class ArticleController extends HttpServlet {
             request.getSession().setAttribute("successMessage", "文章发布成功！");
             response.sendRedirect(request.getContextPath() + "/article/detail?id=" + publishedArticle.getid());
             return;
+
         } catch (NumberFormatException e) {
             request.setAttribute("error", "分类ID格式错误");
             showPublishPage(request, response);
@@ -662,16 +676,16 @@ public class ArticleController extends HttpServlet {
             request.setAttribute("title", title);
             request.setAttribute("content", content);
             request.setAttribute("categoryIds", categoryIds);
-            request.setAttribute("summary", summary); // 保留摘要内容
+            request.setAttribute("summary", summary);
+
             // 重新加载分类列表
             List<Category> categories = categoryService.getEnabledCategories();
             request.setAttribute("categories", categories);
             request.setAttribute("action", "publish");
 
-            request.getRequestDispatcher("/publish-article.jsp").forward(request, response);//跳转到文章发布页面
-        }//找到名为 publish-article.jsp 的页面,将当前的请求和响应对象原封不动传递给目标页面
+            request.getRequestDispatcher("/publish-article.jsp").forward(request, response);
+        }
     }
-
 
     private void updateArticle(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -681,13 +695,14 @@ public class ArticleController extends HttpServlet {
         if (currentUser == null) {
             response.sendRedirect(request.getContextPath() + "/user/login");
             return;
-        }String idStr = request.getParameter("id");//获取编辑的次数
+        }
+
+        String idStr = request.getParameter("id");
         String title = request.getParameter("title");
         String content = request.getParameter("content");
         String[] categoryIds = request.getParameterValues("categoryIds");
-        String allowComment = request.getParameter("allowComment");
-        String status = request.getParameter("status");
         String summary = request.getParameter("summary");
+
         try {
             if (idStr == null || idStr.isEmpty()) {
                 throw new RuntimeException("文章ID不能为空");
@@ -716,25 +731,31 @@ public class ArticleController extends HttpServlet {
 
             Article article = new Article();
             article.setid(id);
-            article.setSummary(summary); // 设置摘要字段
+            article.setSummary(summary);
             article.settitle(title.trim());
-            article.setcontent(content.trim());// 设置状态（只有管理员可以修改状态）
-            if (currentUser.isAdmin() && status != null) {
-                try {
-                    article.setstatus(Integer.parseInt(status));//设置文章状态值
-                } catch (NumberFormatException e) {//捕获数字格式异常
-                    // 忽略状态解析错误
-                }
-            }
+            article.setcontent(content.trim());
 
-            // 转换分类ID
+            // 转换分类ID - 允许为空
             int[] categoryIdArray = null;
             if (categoryIds != null && categoryIds.length > 0) {
                 categoryIdArray = new int[categoryIds.length];
                 for (int i = 0; i < categoryIds.length; i++) {
-                    categoryIdArray[i] = Integer.parseInt(categoryIds[i]);
+                    try {
+                        categoryIdArray[i] = Integer.parseInt(categoryIds[i]);
+                    } catch (NumberFormatException e) {
+                        System.out.println("⚠️ 分类ID格式错误: " + categoryIds[i]);
+                        // 跳过无效的分类ID
+                    }
+                }
+
+                // 如果所有分类ID都无效，设置为null
+                if (categoryIdArray.length == 0) {
+                    categoryIdArray = null;
                 }
             }
+
+            System.out.println("📝 更新文章 - ID: " + id + ", 标题: " + title);
+            System.out.println("📝 选择的分类数量: " + (categoryIdArray != null ? categoryIdArray.length : 0));
 
             // 更新文章
             Article updatedArticle = articleService.updateArticle(article, categoryIdArray);
@@ -743,6 +764,7 @@ public class ArticleController extends HttpServlet {
             request.getSession().setAttribute("successMessage", "文章更新成功！");
             response.sendRedirect(request.getContextPath() + "/article/detail?id=" + updatedArticle.getid());
             return;
+
         } catch (NumberFormatException e) {
             request.setAttribute("error", "文章ID或分类ID格式错误");
             showEditPage(request, response);
@@ -752,6 +774,7 @@ public class ArticleController extends HttpServlet {
             request.setAttribute("title", title);
             request.setAttribute("content", content);
             request.setAttribute("categoryIds", categoryIds);
+            request.setAttribute("summary", summary);
 
             // 重新加载分类列表
             List<Category> categories = categoryService.getEnabledCategories();
@@ -762,72 +785,6 @@ public class ArticleController extends HttpServlet {
         }
     }
 
-
-    private void showEditPage(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        System.out.println("===  开始加载编辑页面 ===");
-
-        // 检查用户是否登录
-        User currentUser = SessionUtils.getCurrentUser(request);
-        if (currentUser == null) {
-            System.out.println(" 用户未登录，重定向到登录页面");
-            response.sendRedirect(request.getContextPath() + "/user/login");
-            return;
-        }
-
-        String idStr = request.getParameter("id");
-        System.out.println("编辑文章ID参数: " + idStr);
-
-        if (idStr == null || idStr.isEmpty()) {
-            System.out.println("❌ 文章ID为空，重定向到我的文章页面");
-            response.sendRedirect(request.getContextPath() + "/article/my-articles");
-            return;
-        }
-
-        try {
-            Integer id = Integer.parseInt(idStr);
-            System.out.println("解析后的文章ID: " + id);
-
-            Article article = articleService.getArticleById(id);
-            System.out.println("查询到的文章: " + article);
-
-            if (article == null) {
-                System.out.println("❌ 文章不存在");
-                response.sendError(HttpServletResponse.SC_NOT_FOUND, "文章不存在");//返回404错误，文章不存在
-                return;
-            }
-
-            System.out.println("🔍 权限检查 - 文章作者ID: " + article.getauthorid() + ", 当前用户ID: " + currentUser.getId());
-            System.out.println("🔍 用户角色 - 是否管理员: " + currentUser.isAdmin());
-
-            // 权限检查：只有作者或管理员可以编辑
-            if (!article.isOwnedBy(currentUser) && !currentUser.isAdmin()) {
-                System.out.println("❌ 没有权限编辑此文章");
-                response.sendError(HttpServletResponse.SC_FORBIDDEN, "没有权限编辑此文章");//返回403错误，无编辑权限
-                return;
-            }
-
-            // 获取分类列表
-            List<Category> categories = categoryService.getEnabledCategories();
-
-            request.setAttribute("article", article);
-            request.setAttribute("categories", categories);
-            request.setAttribute("action", "edit");
-
-            System.out.println("✅ 编辑页面加载完成，准备转发");
-
-            request.getRequestDispatcher("/publish-article.jsp").forward(request, response);
-
-        } catch (NumberFormatException e) {
-            System.out.println("❌ 文章ID格式错误: " + e.getMessage());
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "文章ID格式错误");//返回400错误，ID格式错误
-        } catch (Exception e) {
-            System.out.println("❌ 加载编辑页面异常: " + e.getMessage());
-            e.printStackTrace();
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "加载编辑页面失败");//返回500错误，加载失败
-        }
-    }
 
 
     private void deleteArticle(HttpServletRequest request, HttpServletResponse response)
@@ -1010,8 +967,6 @@ public class ArticleController extends HttpServlet {
         response.addCookie(likeCookie);
     }
 
-
-
     private void showPublishPage(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -1022,15 +977,112 @@ public class ArticleController extends HttpServlet {
             return;
         }
 
-        // 获取分类列表
-        List<Category> categories = categoryService.getEnabledCategories();
+        System.out.println("=== 开始加载发布页面 ===");
 
-        request.setAttribute("categories", categories);
-        request.setAttribute("action", "publish");
+        try {
+            // 获取所有分类
+            List<Category> categories = categoryService.getAllCategories();
 
-        request.getRequestDispatcher("/publish-article.jsp").forward(request, response);
+            // 详细调试信息
+            System.out.println("分类数量: " + (categories != null ? categories.size() : 0));
+            if (categories != null) {
+                for (Category category : categories) {
+                    System.out.println("分类详情 - ID: " + category.getId() +
+                            ", 名称: " + category.getName() +
+                            ", 描述: " + category.getDescription());
+                }
+            }
+
+            // 设置到request中
+            request.setAttribute("categories", categories);
+            request.setAttribute("action", "publish");
+
+            System.out.println("=== 发布页面加载完成 ===");
+
+            request.getRequestDispatcher("/publish-article.jsp").forward(request, response);
+
+        } catch (Exception e) {
+            System.out.println("❌ 加载发布页面异常: " + e.getMessage());
+            e.printStackTrace();
+            request.setAttribute("error", "加载页面失败: " + e.getMessage());
+            request.getRequestDispatcher("/publish-article.jsp").forward(request, response);
+        }
     }
+    private void showEditPage(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
+        System.out.println("=== 开始加载编辑页面 ===");
+
+        // 检查用户是否登录
+        User currentUser = SessionUtils.getCurrentUser(request);
+        if (currentUser == null) {
+            System.out.println("用户未登录，重定向到登录页面");
+            response.sendRedirect(request.getContextPath() + "/user/login");
+            return;
+        }
+
+        String idStr = request.getParameter("id");
+        System.out.println("编辑文章ID参数: " + idStr);
+
+        if (idStr == null || idStr.isEmpty()) {
+            System.out.println("❌ 文章ID为空，重定向到我的文章页面");
+            response.sendRedirect(request.getContextPath() + "/article/my-articles");
+            return;
+        }
+
+        try {
+            Integer id = Integer.parseInt(idStr);
+            System.out.println("解析后的文章ID: " + id);
+
+            Article article = articleService.getArticleById(id);
+            System.out.println("查询到的文章: " + article);
+
+            if (article == null) {
+                System.out.println("❌ 文章不存在");
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "文章不存在");
+                return;
+            }
+
+            // 权限检查：只有作者或管理员可以编辑
+            if (!article.isOwnedBy(currentUser) && !currentUser.isAdmin()) {
+                System.out.println("❌ 没有权限编辑此文章");
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "没有权限编辑此文章");
+                return;
+            }
+
+            // 获取所有分类（不仅仅是启用的）
+            List<Category> categories = categoryService.getAllCategories();
+
+            // 调试信息
+            System.out.println("获取到的分类数量: " + (categories != null ? categories.size() : 0));
+            if (categories != null) {
+                for (Category category : categories) {
+                    System.out.println("分类: ID=" + category.getId() +
+                            ", 名称=" + category.getName() +
+                            ", 描述=" + category.getDescription() +
+                            ", 状态=" + category.getStatus());
+                }
+            } else {
+                System.out.println("⚠️ 分类列表为null");
+            }
+
+            request.setAttribute("article", article);
+            request.setAttribute("categories", categories);
+            request.setAttribute("action", "edit");
+
+            System.out.println("✅ 编辑页面加载完成，准备转发");
+
+            request.getRequestDispatcher("/publish-article.jsp").forward(request, response);
+
+        } catch (NumberFormatException e) {
+            System.out.println("❌ 文章ID格式错误: " + e.getMessage());
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "文章ID格式错误");
+        } catch (Exception e) {
+            System.out.println("❌ 加载编辑页面异常: " + e.getMessage());
+            e.printStackTrace();
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "加载编辑页面失败");
+        }
+    }
 
     private void handleError(HttpServletRequest request, HttpServletResponse response, Exception e)
             throws ServletException, IOException {

@@ -5,11 +5,16 @@ import java.util.List;
 public interface CategoryDao {
     Category findById(Integer id);
 
+    List<Category> findByArticleId(Integer articleId);
+
     List<Category> findAll();
 
     List<Category> findEnabledCategories();
 
+
     Category findByName(String name);
+
+    Category findByName(String name, Integer excludeId);
 
     int insert(Category category);
 

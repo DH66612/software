@@ -32,7 +32,39 @@ public class CategoryDaoImpl implements CategoryDao {
 
         return category;
     }
+    @Override
+    public List<Category> findByArticleId(Integer articleId) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        List<Category> categories = new ArrayList<>();
 
+        try {
+            conn = JdbcUtils.getConnection();
+            String sql = "SELECT c.* FROM categories c " +
+                    "INNER JOIN article_categories ac ON c.id = ac.category_id " +
+                    "WHERE ac.article_id = ? AND c.status = 1 " +
+                    "ORDER BY c.sort_order ASC";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, articleId);
+            rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                Category category = resultSetToCategory(rs);
+                categories.add(category);
+            }
+
+            System.out.println("✅ 获取文章ID " + articleId + " 的分类数量: " + categories.size());
+
+        } catch (SQLException e) {
+            System.out.println("❌ 获取文章分类失败: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            JdbcUtils.close(rs, pstmt, conn);
+        }
+
+        return categories;
+    }
     @Override
     public List<Category> findAll() {
         Connection conn = null;
@@ -42,14 +74,40 @@ public class CategoryDaoImpl implements CategoryDao {
 
         try {
             conn = JdbcUtils.getConnection();
-            String sql = "SELECT * FROM categories ORDER BY create_time DESC";
+            String sql = "SELECT id, name, description, icon, color, sort_order, status, create_time, update_time FROM categories ORDER BY sort_order ASC";
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
 
+            System.out.println("=== 开始从数据库加载分类 ===");
+
             while (rs.next()) {
-                categories.add(resultSetToCategory(rs));
+                Category category = new Category();
+                category.setId(rs.getInt("id"));
+                category.setName(rs.getString("name"));
+                category.setDescription(rs.getString("description"));
+                category.setIcon(rs.getString("icon"));
+                category.setColor(rs.getString("color"));
+                category.setSortOrder(rs.getInt("sort_order"));
+                category.setStatus(rs.getInt("status"));
+
+                Timestamp createTime = rs.getTimestamp("create_time");
+                if (createTime != null) {
+                    category.setCreateTime(new Date(createTime.getTime()));
+                }
+
+                Timestamp updateTime = rs.getTimestamp("update_time");
+                if (updateTime != null) {
+                    category.setUpdateTime(new Date(updateTime.getTime()));
+                }
+
+                System.out.println("✅ 加载分类: ID=" + category.getId() + ", 名称=" + category.getName());
+                categories.add(category);
             }
+
+            System.out.println("✅ 总共加载分类数量: " + categories.size());
+
         } catch (SQLException e) {
+            System.out.println("❌ 加载分类数据失败: " + e.getMessage());
             e.printStackTrace();
         } finally {
             JdbcUtils.close(rs, pstmt, conn);
@@ -67,25 +125,43 @@ public class CategoryDaoImpl implements CategoryDao {
 
         try {
             conn = JdbcUtils.getConnection();
-            String sql = "SELECT * FROM categories WHERE status = 1 ORDER BY create_time DESC";
+            // 确保包含所有必要字段
+            String sql = "SELECT id, name, description, icon, color, sort_order, status FROM categories WHERE status = 1 ORDER BY sort_order ASC, name ASC";
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
 
             while (rs.next()) {
-                categories.add(resultSetToCategory(rs));
+                Category category = new Category();
+
+                // 直接设置字段
+                category.setId(rs.getInt("id"));
+                category.setName(rs.getString("name"));  // 确保名称字段设置
+                category.setDescription(rs.getString("description"));
+                category.setIcon(rs.getString("icon"));
+                category.setColor(rs.getString("color"));
+                category.setSortOrder(rs.getInt("sort_order"));
+                category.setStatus(rs.getInt("status"));
+
+                // 调试信息
+                System.out.println("✅ findEnabledCategories - 分类: ID=" + category.getId() +
+                        ", 名称='" + category.getName() + "'" +
+                        ", 描述='" + category.getDescription() + "'");
+
+                categories.add(category);
             }
+
+            System.out.println("✅ findEnabledCategories - 从数据库加载的分类总数: " + categories.size());
         } catch (SQLException e) {
             e.printStackTrace();
+            System.out.println("❌ findEnabledCategories - 加载分类数据失败: " + e.getMessage());
+            throw new RuntimeException("加载分类数据失败: " + e.getMessage(), e);
         } finally {
             JdbcUtils.close(rs, pstmt, conn);
         }
 
         return categories;
     }
-
     @Override
-
-
     public Category findByName(String name) {
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -112,6 +188,34 @@ public class CategoryDaoImpl implements CategoryDao {
         return category;
     }
 
+
+    @Override
+    public Category findByName(String name, Integer excludeId) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        Category category = null;
+
+        try {
+            conn = JdbcUtils.getConnection();
+            String sql = "SELECT id, name, description, icon, color, sort_order, status, create_time, update_time FROM categories WHERE name = ? AND id != ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, name);
+            pstmt.setInt(2, excludeId);
+            rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                category = resultSetToCategory(rs);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("查询分类失败", e);
+        } finally {
+            JdbcUtils.close(rs, pstmt, conn);
+        }
+
+        return category;
+    }
     @Override
     public int insert(Category category) {
         Connection conn = null;
@@ -339,31 +443,31 @@ public class CategoryDaoImpl implements CategoryDao {
         }
 
 
-        private Category resultSetToCategory(ResultSet rs) throws SQLException {
-            Category category = new Category();
+    private Category resultSetToCategory(ResultSet rs) throws SQLException {
+        Category category = new Category();
 
-            // 设置基本字段
-            category.setId(rs.getInt("id"));
-            category.setName(rs.getString("name"));
-            category.setDescription(rs.getString("description"));
-            category.setIcon(rs.getString("icon"));
-            category.setColor(rs.getString("color"));
-            category.setSortOrder(rs.getInt("sort_order"));
-            category.setStatus(rs.getInt("status"));
+        // 设置基本字段 - 确保名称字段正确设置
+        category.setId(rs.getInt("id"));
+        category.setName(rs.getString("name"));  // 确保这行存在
+        category.setDescription(rs.getString("description"));
+        category.setIcon(rs.getString("icon"));
+        category.setColor(rs.getString("color"));
+        category.setSortOrder(rs.getInt("sort_order"));
+        category.setStatus(rs.getInt("status"));
 
-            // 处理时间字段
-            Timestamp createTime = rs.getTimestamp("create_time");
-            if (createTime != null) {
-                category.setCreateTime(new Date(createTime.getTime()));
-            }
-
-            Timestamp updateTime = rs.getTimestamp("update_time");
-            if (updateTime != null) {
-                category.setUpdateTime(new Date(updateTime.getTime()));
-            }
-
-            return category;
+        // 处理时间字段
+        Timestamp createTime = rs.getTimestamp("create_time");
+        if (createTime != null) {
+            category.setCreateTime(new Date(createTime.getTime()));
         }
+
+        Timestamp updateTime = rs.getTimestamp("update_time");
+        if (updateTime != null) {
+            category.setUpdateTime(new Date(updateTime.getTime()));
+        }
+
+        return category;
+    }
     @Override
     public int countArticleByCategoryId(Integer categoryId) {
         Connection conn = null;

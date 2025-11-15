@@ -428,7 +428,7 @@
 
         <div class="action-buttons">
             <a href="${pageContext.request.contextPath}/article/list" > <button type="button" class="btn btn-primary" id="publishBtn">发布文章</button></a>
-            <a href="${pageContext.request.contextPath}/article/list" > <button type="button" class="btn btn-outline" id="saveDraftBtn">保存草稿</button></a>
+
             <a href="${pageContext.request.contextPath}/article/list" class="btn btn-secondary" id="cancelBtn">取消</a >
         </div>
     </form>

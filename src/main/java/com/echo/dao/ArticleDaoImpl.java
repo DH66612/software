@@ -420,7 +420,7 @@ public class ArticleDaoImpl implements ArticleDao {
             pstmt = conn.prepareStatement(sql);//创建预编译语句对象
             pstmt.setInt(1, id);
 
-            result = pstmt.executeUpdate();
+            result = pstmt.executeUpdate();//返回受影响的行数
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException("增加点赞数失败", e);
@@ -511,7 +511,7 @@ public class ArticleDaoImpl implements ArticleDao {
             conn = JdbcUtils.getConnection();
             String sql = "SELECT COUNT(*) FROM articles";
             pstmt = conn.prepareStatement(sql);//创建预编译语句对象
-            rs = pstmt.executeQuery();
+            rs = pstmt.executeQuery();//执行查询返回结果集
 
             if (rs.next()) {
                 count = rs.getInt(1);

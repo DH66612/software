@@ -431,20 +431,24 @@ public class UserController extends HttpServlet {
             updatedUser.setId(currentUser.getId());
             updatedUser.setNickname(nickname);
             updatedUser.setEmail(email.trim());
-            // 注意：头像通过单独接口更新，这里不处理头像
+            // 注意：不设置avatar字段，避免覆盖
 
             // 3. 调用Service更新资料
             User resultUser = userService.updateProfile(updatedUser);
 
-            // 4. 更新Session中的用户信息
-            SessionUtils.setCurrentUser(request, resultUser);
+            if (resultUser != null) {
+                // 4. 更新Session中的用户信息
+                SessionUtils.setCurrentUser(request, resultUser);
+                System.out.println("用户资料更新成功: " + currentUser.getUsername());
+                System.out.println("更新后头像URL: " + resultUser.getAvatar());
 
-            System.out.println("用户资料更新成功: " + currentUser.getUsername());
-
-            // 5. 使用重定向避免重复提交
-            HttpSession session = request.getSession();
-            session.setAttribute("message", "资料更新成功");
-            response.sendRedirect(request.getContextPath() + "/user/profile");//重定向
+                // 5. 使用重定向避免重复提交
+                HttpSession session = request.getSession();
+                session.setAttribute("message", "资料更新成功");
+                response.sendRedirect(request.getContextPath() + "/user/profile");
+            } else {
+                throw new RuntimeException("资料更新失败");
+            }
 
         } catch (RuntimeException e) {
             // 更新失败
@@ -453,7 +457,6 @@ public class UserController extends HttpServlet {
             request.getRequestDispatcher("/profile.jsp").forward(request, response);
         }
     }
-
 
     private void changePassword(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {

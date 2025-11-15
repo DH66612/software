@@ -74,7 +74,7 @@ import java.util.List;
                     throw new RuntimeException("用户注册失败");
                 }
             } catch (Exception e) {
-                throw new RuntimeException("用户注册失败: " + e.getMessage());
+                throw new RuntimeException("用户注册失败: " + e.getMessage());//获取异常信息
             }
         }
 
@@ -198,16 +198,18 @@ import java.util.List;
                 }
             }
 
-            // 4. 更新信息（不更新密码和角色）
+            // 4. 更新信息（不更新密码、角色和头像）
             existingUser.setNickname(user.getNickname());
             existingUser.setEmail(user.getEmail());
-            existingUser.setAvatar(user.getAvatar());
+            // 重要：不要更新头像，保持原有头像
+            // existingUser.setAvatar(user.getAvatar()); // 删除这行！
             existingUser.setUpdateTime(new Date());
 
             try {
                 int result = userDao.update(existingUser);
                 if (result > 0) {
                     System.out.println("用户资料更新成功: " + existingUser.getUsername());
+                    System.out.println("更新后头像URL: " + existingUser.getAvatar()); // 添加日志
                     existingUser.setPassword(null); // 清除密码
                     return existingUser;
                 } else {

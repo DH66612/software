@@ -73,7 +73,7 @@ public class ArticleController extends HttpServlet {
         System.out.println("=== POST请求到达ArticleController ===");
         System.out.println("请求URL: " + request.getRequestURL());
         System.out.println("请求方法: " + request.getMethod());
-        System.out.println("Content-Type: " + request.getContentType());
+        System.out.println("Content-Type: " + request.getContentType());//获取请求内容类型,如JSON，HTML
 
         String pathInfo = request.getPathInfo();
         System.out.println("PathInfo: " + pathInfo);
@@ -87,7 +87,7 @@ public class ArticleController extends HttpServlet {
             System.out.println("  " + paramName + " = " + paramValue);
         }
 
-        String action = (pathInfo != null) ? pathInfo.substring(1) : "";
+        String action = (pathInfo != null) ? pathInfo.substring(1) : "";//截取路径信息
 
         try {
             switch (action) {
@@ -138,14 +138,14 @@ public class ArticleController extends HttpServlet {
             if (currentUser == null) {
                 System.out.println("❌ 用户未登录，无法评论");
                 response.sendRedirect(request.getContextPath() + "/user/login?redirect=" +
-                        java.net.URLEncoder.encode(request.getRequestURL() + "?id=" + articleId, "UTF-8"));
+                        java.net.URLEncoder.encode(request.getRequestURL() + "?id=" + articleId, "UTF-8"));//编码文章URL为UTF-8格式
                 return;
             }
 
             System.out.println("当前登录用户: ID=" + currentUser.getId() + ", 用户名=" + currentUser.getUsername() + ", 昵称=" + currentUser.getNickname());
 
             Comment comment = new Comment();
-            comment.setArticleId(Integer.parseInt(articleId));
+            comment.setArticleId(Integer.parseInt(articleId));//转换文章ID为整数
             comment.setUserId(currentUser.getId()); // 使用当前登录用户的ID
             comment.setContent(content);
             comment.setStatus(1);
@@ -201,7 +201,7 @@ public class ArticleController extends HttpServlet {
             if (keyword != null && !keyword.trim().isEmpty()) {
                 // 搜索关键词
                 articles = articleService.searchArticles(keyword.trim(), page, pageSize);
-                totalCount = articleService.getSearchCount(keyword.trim());
+                totalCount = articleService.getSearchCount(keyword.trim());//去除关键词首尾空格
                 request.setAttribute("keyword", keyword.trim());
 
             } else if (categoryId != null) {
@@ -218,7 +218,7 @@ public class ArticleController extends HttpServlet {
             processArticleSummaries(articles);
             enrichArticleAuthorInfo(articles);
             CommentService commentService = new CommentServiceImpl();
-            for (Article article : articles) {
+            for (Article article : articles) {//遍历文章列表
                 int commentCount = commentService.getCommentCountByArticleId(article.getid());
                 article.setcommentCount(commentCount);
             }
@@ -239,7 +239,7 @@ public class ArticleController extends HttpServlet {
 
             request.getRequestDispatcher("/article-list.jsp").forward(request, response);
 
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException e) {//数字格式转换异常
             request.setAttribute("error", "参数格式错误");
             request.getRequestDispatcher("/article-list.jsp").forward(request, response);
         } catch (Exception e) {
@@ -287,7 +287,7 @@ public class ArticleController extends HttpServlet {
 
             int endIndex = 100;
             for (int i = 100; i > 80; i--) {
-                if (plainText.charAt(i) == '。' || plainText.charAt(i) == '！' ||
+                if (plainText.charAt(i) == '。' || plainText.charAt(i) == '！' ||//获取字符串指定位置字符
                         plainText.charAt(i) == '？' || plainText.charAt(i) == '.') {
                     endIndex = i + 1;
                     break;

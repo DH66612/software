@@ -474,12 +474,7 @@
                             <a href="${pageContext.request.contextPath}/user/profile" class="dropdown-item">
                                 👤 个人资料
                             </a>
-                            <a href="${pageContext.request.contextPath}/user/settings" class="dropdown-item">
-                                ⚙️ 账户设置
-                            </a>
-                            <a href="${pageContext.request.contextPath}/user/notifications" class="dropdown-item">
-                                🔔 消息通知
-                            </a>
+
                             <div class="dropdown-divider"></div>
                             <a href="${pageContext.request.contextPath}/user/logout" class="dropdown-item">
                                 🚪 退出登录

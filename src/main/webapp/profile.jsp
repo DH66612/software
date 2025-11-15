@@ -221,9 +221,10 @@
     </div>
     <% } %>
 
-    <!-- 头像上传表单 - 独立出来 -->
+    <!-- 修正头像显示部分 -->
     <div class="profile-avatar">
         <form action="${pageContext.request.contextPath}/user/uploadAvatar" method="post" enctype="multipart/form-data" id="avatarForm">
+            <!-- 修正这里：确保头像URL正确获取 -->
             <img src="${pageContext.request.contextPath}${not empty sessionScope.currentUser.avatar ? sessionScope.currentUser.avatar : '/images/avatar-default.png'}"
                  alt="头像" class="avatar" id="avatarImage">
             <div style="margin-top: 15px;">
@@ -325,26 +326,72 @@
         uploadBtn.disabled = true;
     });
 
-    // 主要信息表单提交验证
+    // 个人信息表单使用AJAX提交
     document.getElementById('profileForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
         const email = document.getElementById('email').value;
         const nickname = document.getElementById('nickname').value;
 
-        // 邮箱格式验证
+        // 验证逻辑...
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            e.preventDefault();
             alert('请输入有效的邮箱地址！');
             return;
         }
 
-        // 昵称长度验证
         if (nickname.length > 20) {
-            e.preventDefault();
             alert('昵称长度不能超过20个字符！');
             return;
         }
+
+        // 使用AJAX提交表单
+        const formData = new FormData(this);
+
+        fetch(this.action, {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else {
+                    return response.text();
+                }
+            })
+            .then(data => {
+                // 显示成功消息，但不刷新页面
+                showMessage('个人信息更新成功', 'success');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('更新失败，请重试', 'error');
+            });
     });
+
+    // 显示消息的函数
+    function showMessage(message, type) {
+        // 移除现有消息
+        const existingMessage = document.querySelector('.message');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+
+        // 创建新消息
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}`;
+        messageDiv.textContent = message;
+
+        // 插入到容器开头
+        const container = document.querySelector('.container');
+        const header = document.querySelector('.header');
+        container.insertBefore(messageDiv, header.nextSibling);
+
+        // 3秒后自动消失
+        setTimeout(() => {
+            messageDiv.remove();
+        }, 3000);
+    }
 </script>
 </body>
 </html>

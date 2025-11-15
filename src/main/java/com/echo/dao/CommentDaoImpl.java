@@ -54,7 +54,7 @@ public class CommentDaoImpl implements CommentDao {
 
             // 获取自增主键
             if (result > 0) {
-                rs = pstmt.getGeneratedKeys();
+                rs = pstmt.getGeneratedKeys();//获取自动生成的主键
                 if (rs.next()) {
                     comment.setId(rs.getInt(1));
                 }

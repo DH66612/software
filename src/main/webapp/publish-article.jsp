@@ -6,7 +6,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>文章发布 - 分类选择功能</title>
+    <title>
+        <c:choose>
+            <c:when test="${action == 'edit'}">编辑文章</c:when>
+            <c:otherwise>发布新文章</c:otherwise>
+        </c:choose>
+        - 回声网络
+    </title>
     <style>
         * {
             margin: 0;
@@ -193,17 +199,6 @@
             box-shadow: 0 6px 15px rgba(106, 17, 203, 0.4);
         }
 
-        .btn-outline {
-            background: transparent;
-            border: 2px solid #6a11cb;
-            color: #6a11cb;
-        }
-
-        .btn-outline:hover {
-            background: #6a11cb;
-            color: white;
-        }
-
         .btn-secondary {
             background: #95a5a6;
             color: white;
@@ -314,6 +309,7 @@
             align-items: center;
             cursor: pointer;
         }
+
         .category-info {
             flex: 1;
         }
@@ -381,24 +377,53 @@
 <body>
 <div class="container">
     <div class="header">
-        <h1>发布新文章</h1>
-        <p>选择适合您文章的分类，让更多读者发现您的内容</p >
+        <h1>
+            <c:choose>
+                <c:when test="${action == 'edit'}">编辑文章</c:when>
+                <c:otherwise>发布新文章</c:otherwise>
+            </c:choose>
+        </h1>
+        <p>
+            <c:choose>
+                <c:when test="${action == 'edit'}">修改您的文章内容，让文章更加完美</c:when>
+                <c:otherwise>选择适合您文章的分类，让更多读者发现您的内容</c:otherwise>
+            </c:choose>
+        </p>
     </div>
 
-    <div class="message-container" id="messageContainer"></div>
+    <div class="message-container" id="messageContainer">
+        <c:if test="${not empty message}">
+            <div class="message success">${message}</div>
+        </c:if>
+        <c:if test="${not empty error}">
+            <div class="message error">${error}</div>
+        </c:if>
+    </div>
 
-    <form id="articleForm">
+    <!-- 文章表单 -->
+    <form id="articleForm"
+          action="${pageContext.request.contextPath}/article/${action == 'edit' ? 'edit' : 'publish'}"
+          method="POST">
+
+        <!-- 编辑模式下隐藏的文章ID -->
+        <c:if test="${action == 'edit' && not empty article}">
+            <input type="hidden" name="id" value="${article.id}">
+        </c:if>
+
         <div class="form-section">
             <h3 class="form-section-title">基本信息</h3>
 
             <div class="form-group">
                 <label for="title">文章标题 *</label>
-                <input type="text" id="title" name="title" class="form-control" placeholder="请输入文章标题" required>
+                <input type="text" id="title" name="title" class="form-control"
+                       placeholder="请输入文章标题" required
+                       value="${not empty article ? article.title : ''}">
             </div>
 
             <div class="form-group">
-                <label for="summary">文章摘要 *</label>
-                <textarea id="summary" name="summary" class="form-control" placeholder="请简要描述文章内容，这将在文章列表中显示" required></textarea>
+                <label for="summary">文章摘要</label>
+                <textarea id="summary" name="summary" class="form-control"
+                          placeholder="请简要描述文章内容，这将在文章列表中显示">${not empty article ? article.summary : ''}</textarea>
                 <div class="word-count" id="summaryCount">0/200</div>
             </div>
         </div>
@@ -408,28 +433,38 @@
 
             <div class="form-group">
                 <label for="content">文章内容 *</label>
-                <textarea id="content" name="content" class="form-control" placeholder="请输入文章内容，支持Markdown格式" required></textarea>
+                <textarea id="content" name="content" class="form-control"
+                          placeholder="请输入文章内容，支持Markdown格式" required>${not empty article ? article.content : ''}</textarea>
                 <div class="word-count" id="contentCount">0 字</div>
             </div>
         </div>
 
         <div class="form-section">
-            <h3 class="form-section-title">分类选择</h3><div class="categories-section">
-            <label>文章分类（可多选）</label>
-            <div class="selected-categories" id="selectedCategories">
-                <div class="no-categories">暂未选择分类</div>
+            <h3 class="form-section-title">分类选择</h3>
+            <div class="categories-section">
+                <label>文章分类（可多选）</label>
+                <div class="selected-categories" id="selectedCategories">
+                    <div class="no-categories">暂未选择分类</div>
+                </div>
+                <button type="button" class="category-manage-btn" id="openCategoryModal">
+                    选择分类
+                </button>
+
+                <!-- 隐藏字段用于存储分类ID -->
+                <div id="categoryIdsContainer">
+                    <!-- 动态添加的隐藏输入框 -->
+                </div>
             </div>
-            <button type="button" class="category-manage-btn" id="openCategoryModal">
-                选择分类
-            </button>
-            <input type="hidden" id="selectedCategoryIds" name="categoryIds">
-        </div>
         </div>
 
         <div class="action-buttons">
-            <a href="${pageContext.request.contextPath}/article/list" > <button type="button" class="btn btn-primary" id="publishBtn">发布文章</button></a>
-
-            <a href="${pageContext.request.contextPath}/article/list" class="btn btn-secondary" id="cancelBtn">取消</a >
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+                <c:choose>
+                    <c:when test="${action == 'edit'}">更新文章</c:when>
+                    <c:otherwise>发布文章</c:otherwise>
+                </c:choose>
+            </button>
+            <a href="${pageContext.request.contextPath}/article/my-articles" class="btn btn-secondary">取消</a>
         </div>
     </form>
 </div>
@@ -446,13 +481,14 @@
                 <!-- 分类将通过JavaScript动态加载 -->
             </div>
         </div>
-        <div class="modal-footer">
+        <div class="modal-footer" style="padding: 15px 25px; border-top: 1px solid #eee; text-align: right;">
             <button type="button" class="btn btn-secondary" id="cancelCategorySelection">取消</button>
             <button type="button" class="btn btn-primary" id="confirmCategorySelection">确定</button>
         </div>
     </div>
-</div><script>
-    // 使用安全的JavaScript代码，避免JSP冲突
+</div>
+
+<script>
     document.addEventListener('DOMContentLoaded', function() {
         // 获取所有DOM元素
         var elements = {
@@ -463,16 +499,14 @@
             categoryModal: document.getElementById('categoryModal'),
             modalCategories: document.getElementById('modalCategories'),
             selectedCategories: document.getElementById('selectedCategories'),
-            selectedCategoryIdsInput: document.getElementById('selectedCategoryIds'),
             summaryInput: document.getElementById('summary'),
             contentInput: document.getElementById('content'),
             titleInput: document.getElementById('title'),
             summaryCount: document.getElementById('summaryCount'),
             contentCount: document.getElementById('contentCount'),
-            saveDraftBtn: document.getElementById('saveDraftBtn'),
-            publishBtn: document.getElementById('publishBtn'),
-            cancelBtn: document.getElementById('cancelBtn'),
-            messageContainer: document.getElementById('messageContainer')
+            submitBtn: document.getElementById('submitBtn'),
+            messageContainer: document.getElementById('messageContainer'),
+            articleForm: document.getElementById('articleForm')
         };
 
         // 已选分类数组
@@ -487,6 +521,24 @@
             { id: 5, name: '美食分享', description: '美食制作、餐厅推荐' },
             { id: 6, name: '数码产品', description: '数码产品评测与推荐' }
         ];
+
+        // ==================== 初始化页面数据 ====================
+        function initializePageData() {
+            // 初始化字数统计
+            if (elements.summaryInput && elements.summaryCount) {
+                var summaryCount = elements.summaryInput.value.length;
+                elements.summaryCount.textContent = summaryCount + '/200';
+            }
+
+            if (elements.contentInput && elements.contentCount) {
+                var contentCount = elements.contentInput.value.length;
+                elements.contentCount.textContent = contentCount + ' 字';
+            }
+
+            // 初始化分类选择
+            updateSelectedCategoriesDisplay();
+            updateHiddenCategoryFields();
+        }
 
         // ==================== 模态框控制 ====================
         if (elements.openCategoryModalBtn) {
@@ -518,7 +570,9 @@
                     closeModal();
                 }
             });
-        }// ==================== 分类管理功能 ====================
+        }
+
+        // ==================== 分类管理功能 ====================
         function loadCategories() {
             if (!elements.modalCategories) return;
             displayCategories(categoriesData);
@@ -534,15 +588,12 @@
 
             categories.forEach(function(category) {
                 var categoryElement = document.createElement('div');
-
-                // 使用字符串连接而不是模板字符串
                 var className = 'category-item';
                 if (isCategorySelected(category.id)) {
                     className += ' selected';
                 }
                 categoryElement.className = className;
 
-                // 使用字符串连接创建HTML
                 var isSelected = isCategorySelected(category.id);
                 categoryElement.innerHTML =
                     '<label class="category-checkbox">' +
@@ -561,7 +612,6 @@
                         checkbox.checked = !checkbox.checked;
                         handleCategorySelection(category.id, category.name, checkbox.checked);
 
-                        // 使用 classList 而不是模板字符串
                         if (checkbox.checked) {
                             this.classList.add('selected');
                         } else {
@@ -570,18 +620,20 @@
                     }
                 });
 
+
                 // 复选框变化事件
                 var checkbox = categoryElement.querySelector('input[type="checkbox"]');
                 checkbox.addEventListener('change', function() {
                     handleCategorySelection(category.id, category.name, this.checked);
 
-                    // 使用 classList 而不是模板字符串
                     if (this.checked) {
                         categoryElement.classList.add('selected');
                     } else {
                         categoryElement.classList.remove('selected');
                     }
-                });elements.modalCategories.appendChild(categoryElement);
+                });
+
+                elements.modalCategories.appendChild(categoryElement);
             });
         }
 
@@ -602,6 +654,7 @@
                 });
             }
             updateSelectedCategoriesDisplay();
+            updateHiddenCategoryFields(); // 关键修复：更新隐藏字段
         }
 
         function updateSelectedCategoriesDisplay() {
@@ -611,15 +664,12 @@
 
             if (selectedCategoriesList.length === 0) {
                 elements.selectedCategories.innerHTML = '<div class="no-categories">暂未选择分类</div>';
-                if (elements.selectedCategoryIdsInput) {
-                    elements.selectedCategoryIdsInput.value = '';
-                }
                 return;
             }
 
             selectedCategoriesList.forEach(function(category) {
                 var categoryTag = document.createElement('div');
-                categoryTag.className = 'category-tag';// 使用字符串连接
+                categoryTag.className = 'category-tag';
                 categoryTag.innerHTML =
                     category.name +
                     '<span class="remove-category" data-id="' + category.id + '">&times;</span>';
@@ -627,14 +677,36 @@
                 elements.selectedCategories.appendChild(categoryTag);
             });
 
-            if (elements.selectedCategoryIdsInput) {
-                elements.selectedCategoryIdsInput.value = selectedCategoriesList.map(function(cat) {
-                    return cat.id;
-                }).join(',');
-            }
             bindRemoveCategoryEvents();
         }
+// ==================== 关键修复：更新隐藏的分类字段 ====================
+        function updateHiddenCategoryFields() {
+            var container = document.getElementById('categoryIdsContainer');
+            if (!container) return;
 
+            // 清空现有隐藏字段
+            container.innerHTML = '';
+
+            // 为每个选中的分类创建隐藏输入字段
+            selectedCategoriesList.forEach(function(category) {
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'categoryIds';
+                input.value = category.id;
+                container.appendChild(input);
+            });
+
+            console.log('更新隐藏字段，选中的分类ID:', selectedCategoriesList.map(function(cat) { return cat.id; }));
+
+            // 如果没有选择分类，创建一个空的隐藏字段（可选）
+            if (selectedCategoriesList.length === 0) {
+                var emptyInput = document.createElement('input');
+                emptyInput.type = 'hidden';
+                emptyInput.name = 'categoryIds';
+                emptyInput.value = '';
+                container.appendChild(emptyInput);
+            }
+        }
         function bindRemoveCategoryEvents() {
             var removeButtons = elements.selectedCategories.querySelectorAll('.remove-category');
             removeButtons.forEach(function(button) {
@@ -645,6 +717,7 @@
                         return cat.id !== categoryId;
                     });
                     updateSelectedCategoriesDisplay();
+                    updateHiddenCategoryFields(); // 关键修复：更新隐藏字段
                     var checkbox = elements.modalCategories.querySelector('input[value="' + categoryId + '"]');
                     if (checkbox) {
                         checkbox.checked = false;
@@ -679,27 +752,20 @@
         }
 
         // ==================== 表单处理 ====================
-        if (elements.saveDraftBtn) {
-            elements.saveDraftBtn.addEventListener('click', function() {
-                if (validateForm()) {
-                    showMessage('草稿保存成功！', 'success');
-                }
-            });
-        }
+        if (elements.articleForm) {
+            elements.articleForm.addEventListener('submit', function(e) {
+                console.log('表单提交，准备发布文章');
 
-        if (elements.publishBtn) {
-            elements.publishBtn.addEventListener('click', function() {
-                if (validateForm()) {
-                    showMessage('文章发布成功！', 'success');
+                if (!validateForm()) {
+                    e.preventDefault();
+                    return false;
                 }
-            });
-        }
 
-        if (elements.cancelBtn) {
-            elements.cancelBtn.addEventListener('click', function() {
-                if (confirm('确定要取消吗？未保存的内容将会丢失。')) {
-                    window.location.href = '#';
-                }
+                // 确保分类数据正确提交
+                updateHiddenCategoryFields();
+
+                console.log('表单验证通过，准备提交');
+                return true;
             });
         }
 
@@ -746,8 +812,9 @@
             }, 3000);
         }
 
-        // 初始化已选分类显示
+        // 初始化页面
         updateSelectedCategoriesDisplay();
+        updateHiddenCategoryFields(); // 关键修复：初始化隐藏字段
     });
 </script>
 </body>
